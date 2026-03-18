@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "author": "TTN Demo",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-esp32-devkit-v1",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": -100,
+      "left": 200,
+      "attrs": {
+        "color": "red",
+        "label": "TASTE"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": -50,
+      "left": 200,
+      "rotate": 90,
+      "attrs": {
+        "resistance": "220"
+      }
+    }
+  ],
+  "connections": [
+    ["esp:5", "r1:1", "green", ["v"]],
+    ["r1:2", "led1:A", "green", ["v"]],
+    ["led1:C", "esp:GND.1", "black", ["v"]]
+  ]
+}
