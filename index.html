@@ -1,0 +1,2662 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TTN — Taste Data Transmission Network</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #070b14;
+  --surface:  #0d1422;
+  --card:     #111a2e;
+  --border:   #1c2d4a;
+  --cyan:     #00e5ff;
+  --green:    #00ff88;
+  --yellow:   #ffd600;
+  --red:      #ff3d57;
+  --purple:   #aa66ff;
+  --magenta:  #ff4fc8;
+  --gray:     #4a5f7a;
+  --text:     #cfe0f8;
+  --dim:      #5a7090;
+  --mono:     'Share Tech Mono', monospace;
+  --sans:     'Rajdhani', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ─── grid bg ─── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══════════════ HEADER ═══════════════ */
+.header {
+  position: relative;
+  text-align: center;
+  padding: 28px 20px 20px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(0,229,255,.05) 0%, transparent 100%);
+}
+.header-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--cyan);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  opacity: .7;
+  margin-bottom: 6px;
+}
+.header h1 {
+  font-family: var(--mono);
+  font-size: clamp(22px, 4vw, 40px);
+  color: var(--cyan);
+  letter-spacing: 6px;
+  text-shadow: 0 0 30px rgba(0,229,255,.5);
+  line-height: 1.1;
+}
+.header-sub {
+  font-size: 13px;
+  color: var(--dim);
+  margin-top: 6px;
+  letter-spacing: 2px;
+}
+.header-ref {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--purple);
+  margin-top: 4px;
+  opacity: .7;
+}
+
+/* ═══════════════ LAYOUT ═══════════════ */
+.app {
+  position: relative;
+  display: grid;
+  grid-template-columns: 300px 1fr 300px;
+  grid-template-rows: auto 1fr;
+  gap: 0;
+  min-height: calc(100vh - 120px);
+  z-index: 1;
+}
+
+@media (max-width: 1100px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: auto; }
+  .panel-left, .panel-right { max-height: none; }
+}
+
+/* ─── Panels ─── */
+.panel-left, .panel-right {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 18px;
+  overflow-y: auto;
+  max-height: calc(100vh - 140px);
+}
+.panel-left  { border-right: none; border-top: none; border-left: none; }
+.panel-right { border-left:  none; border-top: none; border-right: none; }
+
+.panel-center {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  gap: 10px;
+  border-top: none;
+}
+
+/* ─── Section titles ─── */
+.sec-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sec-title::before {
+  content: '';
+  width: 3px; height: 10px;
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan);
+}
+
+/* ═══════════════ CONTROLS ═══════════════ */
+.ctrl-group { margin-bottom: 16px; }
+
+.ctrl-label {
+  font-size: 11px;
+  color: var(--dim);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+select, .btn {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .2s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+select:focus { outline: none; border-color: var(--cyan); }
+select option { background: var(--card); }
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-align: center;
+  margin-bottom: 8px;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  background: rgba(0,229,255,.05);
+}
+.btn:hover { background: rgba(0,229,255,.15); box-shadow: 0 0 12px rgba(0,229,255,.2); }
+.btn:disabled { opacity: .35; cursor: not-allowed; }
+
+.btn-green  { border-color: var(--green);   color: var(--green);   background: rgba(0,255,136,.05); }
+.btn-green:hover  { background: rgba(0,255,136,.15); box-shadow: 0 0 12px rgba(0,255,136,.2); }
+.btn-yellow { border-color: var(--yellow);  color: var(--yellow);  background: rgba(255,214,0,.05); }
+.btn-yellow:hover { background: rgba(255,214,0,.15); }
+.btn-red    { border-color: var(--red);     color: var(--red);     background: rgba(255,61,87,.05); padding: 14px; }
+.btn-red:hover { background: rgba(255,61,87,.2); box-shadow: 0 0 16px rgba(255,61,87,.3); }
+.btn-purple { border-color: var(--purple);  color: var(--purple);  background: rgba(170,102,255,.05); }
+.btn-purple:hover { background: rgba(170,102,255,.15); }
+.btn-magenta{ border-color: var(--magenta); color: var(--magenta); background: rgba(255,79,200,.05); }
+.btn-magenta:hover { background: rgba(255,79,200,.15); }
+.btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+.btn-grid .btn { margin-bottom: 0; }
+
+/* ─── Packet count ─── */
+.pkt-counter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.pkt-counter label { font-size: 11px; color: var(--dim); white-space: nowrap; flex: 1; }
+.pkt-counter input[type=range] { flex: 2; cursor: pointer; accent-color: var(--cyan); }
+.pkt-counter span { font-family: var(--mono); font-size: 13px; color: var(--cyan); min-width: 20px; }
+
+/* ═══════════════ STATUS METRICS ═══════════════ */
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+.metric-key { color: var(--dim); font-family: var(--mono); }
+.metric-val { font-family: var(--mono); font-weight: bold; }
+.val-cyan    { color: var(--cyan); }
+.val-green   { color: var(--green); }
+.val-yellow  { color: var(--yellow); }
+.val-red     { color: var(--red); }
+.val-gray    { color: var(--gray); }
+
+/* ═══════════════ TASTE VECTOR BARS ═══════════════ */
+.taste-section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+.taste-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 7px;
+  font-size: 11px;
+}
+.taste-label {
+  font-family: var(--mono);
+  width: 52px;
+  color: var(--dim);
+  flex-shrink: 0;
+}
+.taste-chem {
+  width: 66px;
+  color: var(--gray);
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.taste-bar-wrap {
+  flex: 1;
+  height: 10px;
+  background: rgba(255,255,255,.05);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.taste-bar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width .6s cubic-bezier(.4,0,.2,1);
+  width: 0%;
+}
+.taste-val {
+  font-family: var(--mono);
+  font-size: 12px;
+  width: 42px;
+  text-align: right;
+}
+.taste-dom-arrow {
+  font-size: 14px;
+  width: 16px;
+  text-align: center;
+  color: var(--yellow);
+  opacity: 0;
+  transition: opacity .3s;
+}
+.taste-dom-arrow.show { opacity: 1; }
+
+/* ═══════════════ TOPOLOGY DIAGRAM ═══════════════ */
+.topo-wrap {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  flex: 1;
+  min-height: 300px;
+  overflow: hidden;
+}
+
+.topo-svg-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+}
+
+/* ─── Nodes ─── */
+.topo-node {
+  position: absolute;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  text-align: center;
+  transition: border-color .3s, box-shadow .3s;
+  z-index: 10;
+  min-width: 110px;
+}
+.topo-node .n-id   { font-family: var(--mono); font-size: 10px; color: var(--cyan); letter-spacing: 2px; }
+.topo-node .n-name { font-size: 12px; font-weight: 700; color: var(--text); margin: 2px 0; }
+.topo-node .n-ip   { font-family: var(--mono); font-size: 9px; color: var(--dim); }
+.topo-node .n-hw   { font-size: 9px; color: var(--gray); }
+
+.topo-node.state-idle   { border-color: var(--border); box-shadow: none; }
+.topo-node.state-active { border-color: var(--yellow);  box-shadow: 0 0 16px rgba(255,214,0,.4); }
+.topo-node.state-done   { border-color: var(--green);   box-shadow: 0 0 16px rgba(0,255,136,.3); }
+.topo-node.state-lost   { border-color: var(--red);     box-shadow: 0 0 16px rgba(255,61,87,.4); }
+
+/* ─── SVG links ─── */
+.topo-svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  overflow: visible;
+}
+
+.link-path { stroke: var(--border); stroke-width: 2; fill: none; }
+.link-path.wifi { stroke-dasharray: 6 4; }
+
+.pkt-dot {
+  r: 6;
+  fill: var(--yellow);
+  filter: drop-shadow(0 0 6px var(--yellow));
+  opacity: 0;
+}
+.pkt-dot.lost { fill: var(--red); filter: drop-shadow(0 0 6px var(--red)); }
+
+/* ═══════════════ LOG TERMINAL ═══════════════ */
+.terminal {
+  background: #040a12;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 14px;
+  height: 160px;
+  overflow-y: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.7;
+}
+.terminal::-webkit-scrollbar { width: 4px; }
+.terminal::-webkit-scrollbar-track { background: transparent; }
+.terminal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.log-ts   { color: var(--gray); }
+.log-info { color: var(--dim); }
+.log-ok   { color: var(--green); }
+.log-warn { color: var(--yellow); }
+.log-err  { color: var(--red); }
+.log-node { color: var(--cyan); }
+.log-l7   { color: var(--cyan); }
+.log-l4   { color: var(--green); }
+.log-l3   { color: var(--yellow); }
+.log-l2   { color: var(--yellow); }
+.log-l1   { color: var(--gray); }
+.log-em   { color: var(--magenta); }
+.log-sec  { color: var(--purple); }
+
+/* ═══════════════ SECURITY CHECKS ═══════════════ */
+.sec-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  font-size: 12px;
+}
+.sec-check:last-child { border-bottom: none; }
+.sec-icon { font-family: var(--mono); font-size: 11px; min-width: 54px; }
+.sec-icon.pass { color: var(--green); }
+.sec-icon.fail { color: var(--red); }
+.sec-detail { color: var(--dim); font-size: 10px; margin-top: 2px; }
+
+/* ═══════════════ NETWORK PROFILE TABLE ═══════════════ */
+.net-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  font-family: var(--mono);
+}
+.net-table th {
+  color: var(--dim);
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.net-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+}
+.net-table tr:last-child td { border-bottom: none; }
+.net-table tr.highlight td { background: rgba(0,229,255,.05); }
+
+/* ═══════════════ OSI LAYERS ═══════════════ */
+.osi-layer {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 7px 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  margin-bottom: 5px;
+  opacity: .4;
+  transition: opacity .4s, border-color .4s;
+  font-size: 12px;
+}
+.osi-layer.active { opacity: 1; border-color: var(--cyan); }
+.osi-code { font-family: var(--mono); font-size: 11px; min-width: 28px; color: var(--cyan); }
+.osi-name { font-weight: 700; min-width: 80px; }
+.osi-detail { color: var(--dim); flex: 1; font-size: 11px; }
+.osi-result { font-family: var(--mono); font-size: 10px; color: var(--green); text-align: right; min-width: 90px; }
+
+/* ═══════════════ TABS (center panel) ═══════════════ */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.tab-btn {
+  flex: 1;
+  padding: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--dim);
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all .2s;
+}
+.tab-btn.active { background: rgba(0,229,255,.1); border-color: var(--cyan); color: var(--cyan); }
+.tab-pane { display: none; }
+.tab-pane.active { display: flex; flex-direction: column; gap: 10px; }
+
+/* ═══════════════ PROGRESS / STATUS BAR ═══════════════ */
+.sim-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.sim-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--gray);
+  flex-shrink: 0;
+  transition: background .3s;
+}
+.sim-dot.running { background: var(--green); box-shadow: 0 0 8px var(--green); animation: blink 1s infinite; }
+.sim-dot.error   { background: var(--red); box-shadow: 0 0 8px var(--red); }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.pkt-progress {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 5px;
+}
+.pkt-pip {
+  width: 24px; height: 7px;
+  border-radius: 2px;
+  background: var(--border);
+  transition: background .3s;
+}
+.pkt-pip.ok   { background: var(--green); }
+.pkt-pip.lost { background: var(--red); }
+.pkt-pip.cur  { background: var(--yellow); animation: blink 0.5s infinite; }
+
+/* ═══════════════ GLITCH TITLE ANIM ═══════════════ */
+@keyframes glitch {
+  0%,100%{clip-path:none;transform:none}
+  20%{clip-path:polygon(0 20%,100% 20%,100% 30%,0 30%);transform:translate(-2px)}
+  40%{clip-path:none;transform:none}
+  60%{clip-path:polygon(0 60%,100% 60%,100% 70%,0 70%);transform:translate(2px)}
+  80%{clip-path:none;transform:none}
+}
+.header h1::after {
+  content: attr(data-text);
+  position: absolute; top: 0; left: 0;
+  color: var(--red);
+  animation: glitch 8s infinite;
+  clip-path: polygon(0 0,0 0,0 0,0 0);
+}
+
+/* ═══════════════ NETWORK SCORE BAR ═══════════════ */
+.score-bar-wrap { height: 4px; background: var(--border); border-radius: 2px; flex: 1; }
+.score-bar { height: 100%; border-radius: 2px; transition: width .5s; }
+
+/* ═══════════════ HALTED OVERLAY ═══════════════ */
+.halt-overlay {
+  position: fixed; inset: 0;
+  background: rgba(255,61,87,.08);
+  border: 2px solid var(--red);
+  pointer-events: none;
+  z-index: 999;
+  display: none;
+}
+.halt-overlay.show { display: block; animation: haltBlink 1s infinite; }
+@keyframes haltBlink { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+/* ═══════════════ CARTRIDGE ═══════════════ */
+.cartridge-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+.cartridge-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.cartridge-label { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
+.cartridge-pct {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: bold;
+  color: var(--green);
+  transition: color .4s;
+  line-height: 1;
+}
+.cartridge-sub { font-family: var(--mono); font-size: 10px; color: var(--dim); }
+
+/* Tube visual */
+.cartridge-tube {
+  position: relative;
+  width: 100%;
+  height: 20px;
+  background: rgba(255,255,255,.04);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.cartridge-fill {
+  height: 100%;
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--green), #00ffcc);
+  transition: width .6s cubic-bezier(.4,0,.2,1), background .4s;
+  position: relative;
+}
+.cartridge-fill::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 8px; right: 8px;
+  height: 4px;
+  background: rgba(255,255,255,.25);
+  border-radius: 2px;
+}
+.cartridge-drops {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.drop {
+  width: 8px; height: 10px;
+  background: var(--cyan);
+  border-radius: 0 0 50% 50%;
+  opacity: .5;
+  transition: opacity .3s, background .3s;
+}
+.drop.active { opacity: 1; }
+
+/* Refill button */
+.btn-refill {
+  background: rgba(0,255,136,.08);
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 12px;
+  padding: 7px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: 1px;
+}
+.btn-refill:hover { background: rgba(0,255,136,.2); }
+
+/* ═══════════════ SENSORY EQ ═══════════════ */
+.eq-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+.eq-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.eq-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  width: 48px;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+.eq-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  background: var(--border);
+  position: relative;
+}
+.eq-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid var(--bg);
+  transition: transform .15s;
+}
+.eq-slider::-webkit-slider-thumb:active { transform: scale(1.3); }
+.eq-val {
+  font-family: var(--mono);
+  font-size: 11px;
+  width: 36px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.eq-pwm {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--gray);
+  width: 44px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.eq-lock-badge {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 2px;
+  background: rgba(255,61,87,.15);
+  color: var(--red);
+  border: 1px solid rgba(255,61,87,.3);
+  display: none;
+  white-space: nowrap;
+}
+
+/* ═══════════════ CARTRIDGE WARNING MODAL ═══════════════ */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.75);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  display: none;
+}
+.modal-overlay.show { display: flex; }
+.modal-box {
+  background: var(--card);
+  border: 2px solid var(--red);
+  border-radius: 10px;
+  padding: 28px 32px;
+  max-width: 440px;
+  width: 90%;
+  box-shadow: 0 0 60px rgba(255,61,87,.3);
+  animation: modalIn .25s ease;
+}
+@keyframes modalIn {
+  from { transform: scale(.92); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.modal-icon { font-size: 36px; text-align: center; margin-bottom: 12px; }
+.modal-title {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--red);
+  letter-spacing: 3px;
+  text-align: center;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.modal-body {
+  font-size: 13px;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+.modal-body span { color: var(--yellow); font-family: var(--mono); }
+.modal-btns { display: flex; gap: 10px; justify-content: center; }
+.modal-btn-confirm {
+  background: rgba(0,255,136,.1);
+  border: 1px solid var(--green);
+  color: var(--green);
+  padding: 10px 24px;
+  border-radius: 4px;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.modal-btn-confirm:hover { background: rgba(0,255,136,.25); }
+.modal-btn-stop {
+  background: rgba(255,61,87,.1);
+  border: 1px solid var(--red);
+  color: var(--red);
+  padding: 10px 24px;
+  border-radius: 4px;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.modal-btn-stop:hover { background: rgba(255,61,87,.25); }
+
+/* ═══════════════ RESULT TAB ═══════════════ */
+.res-header {
+  background: linear-gradient(135deg, rgba(0,229,255,.08) 0%, rgba(170,102,255,.08) 100%);
+  border: 1px solid rgba(0,229,255,.2);
+  border-radius: 6px;
+  padding: 14px 18px;
+  margin-bottom: 12px;
+}
+.res-title {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--cyan);
+  letter-spacing: 4px;
+  text-shadow: 0 0 20px rgba(0,229,255,.5);
+  margin-bottom: 4px;
+}
+.res-scenario {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.res-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+.res-card-title {
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.res-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+.res-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Terminal-style final report */
+.res-terminal {
+  background: #000;
+  border: 1px solid #1f3a1f;
+  border-radius: 4px;
+  padding: 12px 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: #0f0;
+  line-height: 1.8;
+}
+
+/* Tick table */
+.res-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  font-family: var(--mono);
+}
+.res-table th {
+  color: var(--dim);
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 5px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.res-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  vertical-align: top;
+}
+.res-table tr:last-child td { border-bottom: none; }
+.res-table tr.tick-ok td { background: rgba(0,255,136,.03); }
+.res-table tr.tick-drop td { background: rgba(255,61,87,.05); }
+
+/* Metrics list */
+.res-metric-item {
+  display: flex;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.res-metric-item:last-child { border-bottom: none; }
+.res-metric-key {
+  font-weight: 700;
+  min-width: 220px;
+  flex-shrink: 0;
+}
+.res-metric-val { color: var(--dim); flex: 1; }
+
+/* Analysis bullets */
+.res-analysis-row {
+  display: flex;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.res-analysis-row:last-child { border-bottom: none; }
+.res-analysis-icon { font-size: 16px; flex-shrink: 0; }
+.res-analysis-body strong { font-weight: 700; }
+
+/* Verdict banner */
+.res-verdict {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 6px;
+  border: 2px solid var(--green);
+  background: rgba(0,255,136,.06);
+  margin-top: 4px;
+}
+.res-verdict.fail { border-color: var(--red); background: rgba(255,61,87,.06); }
+.res-verdict.warn { border-color: var(--yellow); background: rgba(255,214,0,.06); }
+.res-verdict-icon {
+  font-size: 28px;
+  color: var(--green);
+  font-family: var(--mono);
+  font-weight: bold;
+  min-width: 36px;
+  text-align: center;
+}
+.res-verdict.fail .res-verdict-icon { color: var(--red); }
+.res-verdict.warn .res-verdict-icon { color: var(--yellow); }
+.res-verdict-label {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--green);
+  letter-spacing: 3px;
+  margin-bottom: 3px;
+}
+.res-verdict.fail .res-verdict-label { color: var(--red); }
+.res-verdict.warn .res-verdict-label { color: var(--yellow); }
+.res-verdict-text { font-size: 12px; color: var(--text); line-height: 1.6; }
+
+/* ─── Scrollbar global ─── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); }
+</style>
+</head>
+<body>
+
+<div class="halt-overlay" id="haltOverlay"></div>
+
+<!-- ══ CARTRIDGE WARNING MODAL ══ -->
+<div class="modal-overlay" id="cartridgeModal">
+  <div class="modal-box">
+    <div class="modal-icon">⚠️</div>
+    <div class="modal-title">⚠ Cartridge Warning</div>
+    <div class="modal-body">
+      ปริมาณสารละลายปรุงรส (Tastant Solution) เหลือ <span id="modalCartPct" style="font-size:18px;color:var(--red)">—</span><br>
+      ต่ำกว่าเกณฑ์ 10% — EM Minipump อาจทำงานไม่สมบูรณ์<br>
+      รสชาติที่ได้รับอาจ <b style="color:var(--yellow)">ขาดหาย หรือ ไม่สม่ำเสมอ</b><br><br>
+      กรุณาอนุมัติการดำเนินการ:
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn-confirm" onclick="confirmRefill()">💧 เติมสารละลาย (Refill)</button>
+      <button class="modal-btn-stop" onclick="dismissModal()">ดำเนินการต่อ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HEADER ══ -->
+<div class="header">
+  <div class="header-badge">v4.0 · Cyber-Physical System</div>
+  <h1 data-text="TTN — TASTE DATA TRANSMISSION NETWORK">TTN — TASTE DATA TRANSMISSION NETWORK</h1>
+  <div class="header-sub">Sensor Patch → ESP32 → WiFi → IoT Cloud → ESP32 → EM Actuator</div>
+  <div class="header-ref">Based on e-Taste (Chen et al., Science Advances 2025)</div>
+</div>
+
+<div class="app">
+
+  <!-- ══ LEFT PANEL ══ -->
+  <div class="panel-left">
+
+    <div class="sec-title">Dataset Selection</div>
+    <div class="ctrl-group">
+      <div class="ctrl-label">เลือกเมนูอาหาร (Taste Dataset)</div>
+      <select id="datasetSel">
+        <option value="1">DS-001 · Wagyu Steak · 🥩 · JP</option>
+        <option value="2">DS-002 · Salmon Sushi · 🍣 · JP</option>
+        <option value="3">DS-003 · Truffle Risotto · 🍄 · IT</option>
+        <option value="4" selected>DS-004 · Tom Yum Soup · 🍲 · TH</option>
+        <option value="5">DS-005 · Choc Lava Cake · 🍰 · FR</option>
+        <option value="6">DS-006 · Pad Thai · 🍜 · TH</option>
+        <option value="7">DS-007 · Caesar Salad · 🥗 · US</option>
+        <option value="8">DS-008 · Mango Sticky Rice · 🥭 · TH</option>
+      </select>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-label">Network Profile</div>
+      <select id="networkSel">
+        <option value="1">ESPNOW (Local) — 5ms · 0.5% loss</option>
+        <option value="2">WiFi 802.11n — 15ms · 1.5% loss</option>
+        <option value="3">IoT Cloud (Good) — 300ms · 0.5% loss</option>
+        <option value="4">IoT Cloud (Fair) — 800ms · 3% loss</option>
+        <option value="5">IoT Cloud (Poor) — 2000ms · 10% loss</option>
+      </select>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="pkt-counter">
+        <label>จำนวน Packet</label>
+        <input type="range" id="pktCount" min="1" max="5" value="3">
+        <span id="pktCountVal">3</span>
+      </div>
+    </div>
+
+    <!-- ── CARTRIDGE ── -->
+    <div class="sec-title">EM Actuator · Tastant Cartridge</div>
+    <div class="cartridge-wrap">
+      <div class="cartridge-header">
+        <div>
+          <div class="cartridge-label">Tastant Solution</div>
+          <div class="cartridge-sub" id="cartVolume">~10.0 µL เหลืออยู่</div>
+        </div>
+        <div style="text-align:right">
+          <div class="cartridge-pct" id="cartPct">100%</div>
+          <div class="cartridge-sub" id="cartStatus" style="color:var(--green)">READY</div>
+        </div>
+      </div>
+      <div class="cartridge-tube">
+        <div class="cartridge-fill" id="cartFill" style="width:100%"></div>
+      </div>
+      <div class="cartridge-drops" id="cartDrops"></div>
+      <div style="display:flex;gap:6px;margin-top:10px;align-items:center">
+        <button class="btn-refill" onclick="refillCartridge()">💧 Refill Cartridge</button>
+        <span style="font-size:10px;color:var(--dim);flex:1">Max ~10 µL / cartridge</span>
+        <span id="cartWarningBadge" style="font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(255,61,87,.15);color:var(--red);border:1px solid rgba(255,61,87,.4);display:none">⚠ LOW</span>
+      </div>
+    </div>
+
+    <!-- ── SENSORY EQ ── -->
+    <div class="sec-title">Sensory EQ — HITL Control</div>
+    <div class="eq-wrap">
+      <div style="font-size:10px;color:var(--dim);margin-bottom:10px;line-height:1.6;">
+        ปรับความเข้มข้นรสชาติ แบบ Real-time<br>
+        <span style="color:var(--yellow)">⚡ QoS:</span> Salty ถูก Cap ที่ 0.25 (Hypernatremia Guard)
+      </div>
+
+      <!-- Sweet -->
+      <div class="eq-row">
+        <div class="eq-label" style="color:#ff4fc8">SWEET</div>
+        <input type="range" class="eq-slider" id="eq-sweet" min="0" max="100" value="0"
+          style="accent-color:#ff4fc8"
+          oninput="onEQChange('sweet',this.value)">
+        <div class="eq-val" id="eqv-sweet" style="color:#ff4fc8">0.00</div>
+        <div class="eq-pwm" id="eqpwm-sweet">0%</div>
+      </div>
+      <!-- Salty -->
+      <div class="eq-row">
+        <div class="eq-label" style="color:#00e5ff">SALTY</div>
+        <input type="range" class="eq-slider" id="eq-salty" min="0" max="100" value="0"
+          style="accent-color:#00e5ff"
+          oninput="onEQChange('salty',this.value)">
+        <div class="eq-val" id="eqv-salty" style="color:#00e5ff">0.00</div>
+        <div class="eq-pwm" id="eqpwm-salty">0%</div>
+        <span class="eq-lock-badge" id="eqlock-salty">CAP 0.25</span>
+      </div>
+      <!-- Sour -->
+      <div class="eq-row">
+        <div class="eq-label" style="color:#ffd600">SOUR</div>
+        <input type="range" class="eq-slider" id="eq-sour" min="0" max="100" value="0"
+          style="accent-color:#ffd600"
+          oninput="onEQChange('sour',this.value)">
+        <div class="eq-val" id="eqv-sour" style="color:#ffd600">0.00</div>
+        <div class="eq-pwm" id="eqpwm-sour">0%</div>
+      </div>
+      <!-- Bitter -->
+      <div class="eq-row">
+        <div class="eq-label" style="color:#8a9fba">BITTER</div>
+        <input type="range" class="eq-slider" id="eq-bitter" min="0" max="100" value="0"
+          style="accent-color:#8a9fba"
+          oninput="onEQChange('bitter',this.value)">
+        <div class="eq-val" id="eqv-bitter" style="color:#8a9fba">0.00</div>
+        <div class="eq-pwm" id="eqpwm-bitter">0%</div>
+      </div>
+      <!-- Umami -->
+      <div class="eq-row">
+        <div class="eq-label" style="color:#00ff88">UMAMI</div>
+        <input type="range" class="eq-slider" id="eq-umami" min="0" max="100" value="0"
+          style="accent-color:#00ff88"
+          oninput="onEQChange('umami',this.value)">
+        <div class="eq-val" id="eqv-umami" style="color:#00ff88">0.00</div>
+        <div class="eq-pwm" id="eqpwm-umami">0%</div>
+      </div>
+
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:10px;color:var(--dim)">V_taste EQ override:</span>
+        <span id="eqVectorOut" style="font-family:var(--mono);font-size:9px;color:var(--cyan)">[—]</span>
+      </div>
+    </div>
+
+    <div class="sec-title">Simulation Controls</div>
+    <button class="btn btn-green" id="startBtn" onclick="startSim()">▶ START SIMULATION</button>
+    <div class="btn-grid">
+      <button class="btn btn-yellow" onclick="quickDemo()">⚡ QUICK DEMO</button>
+      <button class="btn btn-purple" onclick="runStressTest()">🔥 STRESS TEST</button>
+    </div>
+    <div class="btn-grid">
+      <button class="btn" onclick="showOSI()">📡 OSI LAYERS</button>
+      <button class="btn btn-magenta" onclick="showNetCompare()">📊 NET COMPARE</button>
+    </div>
+    <button class="btn" onclick="runSecurity()">🔒 SECURITY CHECK</button>
+    <button class="btn btn-red" id="stopBtn" onclick="emergencyStop()">■ EMERGENCY STOP</button>
+
+    <div style="margin-top: 16px;">
+      <div class="sec-title">Taste Vector Output</div>
+      <div class="taste-section" id="tasteDisplay">
+        <div class="taste-row" id="tr-sweet">
+          <div class="taste-dom-arrow" id="dom-sweet">▶</div>
+          <div class="taste-label" style="color:#ff4fc8">SWEET</div>
+          <div class="taste-chem">Glucose</div>
+          <div class="taste-bar-wrap"><div class="taste-bar" id="bar-sweet" style="background:#ff4fc8;width:0%"></div></div>
+          <div class="taste-val" id="val-sweet" style="color:#ff4fc8">0.000</div>
+        </div>
+        <div class="taste-row" id="tr-salty">
+          <div class="taste-dom-arrow" id="dom-salty">▶</div>
+          <div class="taste-label" style="color:#00e5ff">SALTY</div>
+          <div class="taste-chem">NaCl</div>
+          <div class="taste-bar-wrap"><div class="taste-bar" id="bar-salty" style="background:#00e5ff;width:0%"></div></div>
+          <div class="taste-val" id="val-salty" style="color:#00e5ff">0.000</div>
+        </div>
+        <div class="taste-row" id="tr-sour">
+          <div class="taste-dom-arrow" id="dom-sour">▶</div>
+          <div class="taste-label" style="color:#ffd600">SOUR</div>
+          <div class="taste-chem">H+ ion</div>
+          <div class="taste-bar-wrap"><div class="taste-bar" id="bar-sour" style="background:#ffd600;width:0%"></div></div>
+          <div class="taste-val" id="val-sour" style="color:#ffd600">0.000</div>
+        </div>
+        <div class="taste-row" id="tr-bitter">
+          <div class="taste-dom-arrow" id="dom-bitter">▶</div>
+          <div class="taste-label" style="color:#4a5f7a">BITTER</div>
+          <div class="taste-chem">Quinine</div>
+          <div class="taste-bar-wrap"><div class="taste-bar" id="bar-bitter" style="background:#4a5f7a;width:0%"></div></div>
+          <div class="taste-val" id="val-bitter" style="color:#8a9fba">0.000</div>
+        </div>
+        <div class="taste-row" id="tr-umami">
+          <div class="taste-dom-arrow" id="dom-umami">▶</div>
+          <div class="taste-label" style="color:#00ff88">UMAMI</div>
+          <div class="taste-chem">Glutamate</div>
+          <div class="taste-bar-wrap"><div class="taste-bar" id="bar-umami" style="background:#00ff88;width:0%"></div></div>
+          <div class="taste-val" id="val-umami" style="color:#00ff88">0.000</div>
+        </div>
+      </div>
+
+      <div class="metric-row">
+        <span class="metric-key">Dominant</span>
+        <span class="metric-val val-yellow" id="domOut">—</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-key">PWM Duty</span>
+        <span class="metric-val val-green" id="pwmOut">—</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-key">V_taste[5]</span>
+        <span class="metric-val val-cyan" id="vectorOut" style="font-size:9px">[—]</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CENTER PANEL ══ -->
+  <div class="panel-center">
+
+    <!-- Status -->
+    <div class="sim-status">
+      <div class="sim-dot" id="simDot"></div>
+      <span id="simStatusText" style="color:var(--dim)">เลือก Dataset และ Network แล้วกด START SIMULATION</span>
+    </div>
+    <div class="pkt-progress" id="pktProgress"></div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('topo',this)">Topology</button>
+      <button class="tab-btn" onclick="switchTab('osi',this)">OSI Layers</button>
+      <button class="tab-btn" onclick="switchTab('sec',this)">Security</button>
+      <button class="tab-btn" onclick="switchTab('net',this)">Net Compare</button>
+      <button class="tab-btn" id="resultTabBtn" onclick="switchTab('result',this)" style="border-color:var(--yellow);color:var(--yellow)">📋 Result</button>
+    </div>
+
+    <!-- TOPOLOGY TAB -->
+    <div class="tab-pane active" id="tab-topo">
+      <div class="topo-wrap" id="topoWrap">
+        <svg class="topo-svg" id="topoSVG" viewBox="0 0 700 280" preserveAspectRatio="xMidYMid meet">
+          <!-- Link lines -->
+          <line id="link-SRC-AP1" x1="140" y1="80" x2="265" y2="80" class="link-path wifi" stroke="var(--border)"/>
+          <line id="link-AP1-IOT" x1="370" y1="80" x2="490" y2="80" class="link-path wifi" stroke="var(--border)"/>
+          <line id="link-IOT-AP2" x1="560" y1="120" x2="560" y2="190" class="link-path" stroke="var(--border)"/>
+          <line id="link-AP2-DST" x1="490" y1="215" x2="385" y2="215" class="link-path wifi" stroke="var(--border)"/>
+          <line id="link-DST-end" x1="280" y1="215" x2="140" y2="215" class="link-path wifi" stroke="var(--border)"/>
+          <!-- Packet dots -->
+          <circle class="pkt-dot" id="pkt-SRC-AP1" cx="200" cy="80"/>
+          <circle class="pkt-dot" id="pkt-AP1-IOT" cx="430" cy="80"/>
+          <circle class="pkt-dot" id="pkt-IOT-AP2" cx="560" cy="155"/>
+          <circle class="pkt-dot" id="pkt-AP2-DST" cx="435" cy="215"/>
+          <circle class="pkt-dot" id="pkt-DST-end" cx="210" cy="215"/>
+          <!-- WiFi labels -->
+          <text x="200" y="72" fill="rgba(0,229,255,.4)" font-size="9" font-family="Share Tech Mono" text-anchor="middle">2.4GHz ~~~</text>
+          <text x="430" y="72" fill="rgba(0,229,255,.4)" font-size="9" font-family="Share Tech Mono" text-anchor="middle">2.4GHz ~~~</text>
+          <text x="580" y="158" fill="rgba(255,214,0,.4)" font-size="9" font-family="Share Tech Mono">HTTPS</text>
+          <text x="435" y="207" fill="rgba(0,229,255,.4)" font-size="9" font-family="Share Tech Mono" text-anchor="middle">2.4GHz ~~~</text>
+          <text x="210" y="207" fill="rgba(0,229,255,.4)" font-size="9" font-family="Share Tech Mono" text-anchor="middle">2.4GHz ~~~</text>
+        </svg>
+        <!-- Nodes (absolute positioned) -->
+        <div class="topo-node state-idle" id="node-SRC" style="left:2%;top:44px">
+          <div class="n-id">[SRC]</div>
+          <div class="n-name">Sensor + ESP32</div>
+          <div class="n-ip">192.168.1.10</div>
+          <div class="n-hw">ADC 16-bit · Sensor Patch</div>
+        </div>
+        <div class="topo-node state-idle" id="node-AP1" style="left:34%;top:44px">
+          <div class="n-id">[AP1]</div>
+          <div class="n-name">WiFi AP (TX)</div>
+          <div class="n-ip">192.168.1.1</div>
+          <div class="n-hw">802.11n · 2.4 GHz</div>
+        </div>
+        <div class="topo-node state-idle" id="node-IOT" style="right:4%;top:44px">
+          <div class="n-id">[IOT]</div>
+          <div class="n-name">IoT Cloud</div>
+          <div class="n-ip">34.120.0.1</div>
+          <div class="n-hw">Blynk / ESPNOW Relay</div>
+        </div>
+        <div class="topo-node state-idle" id="node-AP2" style="right:4%;bottom:28px">
+          <div class="n-id">[AP2]</div>
+          <div class="n-name">WiFi AP (RX)</div>
+          <div class="n-ip">10.0.0.1</div>
+          <div class="n-hw">802.11n · 2.4 GHz</div>
+        </div>
+        <div class="topo-node state-idle" id="node-DST" style="left:2%;bottom:28px">
+          <div class="n-id">[DST]</div>
+          <div class="n-name">ESP32 + Actuator</div>
+          <div class="n-ip">10.0.0.10</div>
+          <div class="n-hw">EM Pump · PWM Drive</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OSI TAB -->
+    <div class="tab-pane" id="tab-osi">
+      <div style="font-size:11px;color:var(--dim);margin-bottom:8px;">กด <b style="color:var(--cyan)">OSI LAYERS</b> เพื่อเริ่ม animation encapsulation L7→L1</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div>
+          <div style="font-size:11px;color:var(--cyan);font-family:var(--mono);margin-bottom:6px;">TX PATH — Encapsulation</div>
+          <div class="osi-layer" id="osi-tx-L7">
+            <div class="osi-code" style="color:#ff4fc8">L7</div>
+            <div class="osi-name">Application</div>
+            <div class="osi-detail">Serialize float32[5] → JSON</div>
+            <div class="osi-result" id="osi-tx-L7-r"></div>
+          </div>
+          <div class="osi-layer" id="osi-tx-L6">
+            <div class="osi-code" style="color:#aa66ff">L6</div>
+            <div class="osi-name">Presentation</div>
+            <div class="osi-detail">Normalize + gzip compress</div>
+            <div class="osi-result" id="osi-tx-L6-r"></div>
+          </div>
+          <div class="osi-layer" id="osi-tx-L5">
+            <div class="osi-code" style="color:#00e5ff">L5</div>
+            <div class="osi-name">Session</div>
+            <div class="osi-detail">Blynk auth token / ESPNOW</div>
+            <div class="osi-result" id="osi-tx-L5-r"></div>
+          </div>
+          <div class="osi-layer" id="osi-tx-L4">
+            <div class="osi-code" style="color:#00ff88">L4</div>
+            <div class="osi-name">Transport</div>
+            <div class="osi-detail">UDP 55100→7775 checksum</div>
+            <div class="osi-result" id="osi-tx-L4-r"></div>
+          </div>
+          <div class="osi-layer" id="osi-tx-L3">
+            <div class="osi-code" style="color:#ffd600">L3</div>
+            <div class="osi-name">Network</div>
+            <div class="osi-detail">IP header TTL=64 src→dst</div>
+            <div class="osi-result" id="osi-tx-L3-r"></div>
+          </div>
+          <div class="osi-layer" id="osi-tx-L2">
+            <div class="osi-code" style="color:#ffd600">L2</div>
+            <div class="osi-name">Data Link</div>
+            <div class="osi-detail">WiFi 802.11 MAC + FCS</div>
+            <div class="osi-result" id="osi-tx-L2-r"></div>
+          </div>
+          <div class="osi-layer" id="osi-tx-L1">
+            <div class="osi-code" style="color:#4a5f7a">L1</div>
+            <div class="osi-name">Physical</div>
+            <div class="osi-detail">2.4GHz OFDM 802.11n 20MHz</div>
+            <div class="osi-result" id="osi-tx-L1-r"></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--magenta);font-family:var(--mono);margin-bottom:6px;">RX PATH — Decapsulation</div>
+          <div class="osi-layer" id="osi-rx-L1">
+            <div class="osi-code" style="color:#4a5f7a">L1</div>
+            <div class="osi-name">Physical</div>
+            <div class="osi-detail">Receive 2.4GHz OTA bits</div>
+            <div class="osi-result" id="osi-rx-L1-r"></div>
+          </div>
+          <div class="osi-layer" id="osi-rx-L2">
+            <div class="osi-code" style="color:#ffd600">L2</div>
+            <div class="osi-name">Data Link</div>
+            <div class="osi-detail">Check WiFi FCS / CRC-32</div>
+            <div class="osi-result" id="osi-rx-L2-r"></div>
+          </div>
+          <div class="osi-layer" id="osi-rx-L3">
+            <div class="osi-code" style="color:#ffd600">L3</div>
+            <div class="osi-name">Network</div>
+            <div class="osi-detail">Route IP to dst node</div>
+            <div class="osi-result" id="osi-rx-L3-r"></div>
+          </div>
+          <div class="osi-layer" id="osi-rx-L4">
+            <div class="osi-code" style="color:#00ff88">L4</div>
+            <div class="osi-name">Transport</div>
+            <div class="osi-detail">UDP checksum verify</div>
+            <div class="osi-result" id="osi-rx-L4-r"></div>
+          </div>
+          <div class="osi-layer" id="osi-rx-L5">
+            <div class="osi-code" style="color:#00e5ff">L5</div>
+            <div class="osi-name">Session</div>
+            <div class="osi-detail">Seq in-order, no replay</div>
+            <div class="osi-result" id="osi-rx-L5-r"></div>
+          </div>
+          <div class="osi-layer" id="osi-rx-L6">
+            <div class="osi-code" style="color:#aa66ff">L6</div>
+            <div class="osi-name">Presentation</div>
+            <div class="osi-detail">Decompress gzip</div>
+            <div class="osi-result" id="osi-rx-L6-r"></div>
+          </div>
+          <div class="osi-layer" id="osi-rx-L7">
+            <div class="osi-code" style="color:#ff4fc8">L7</div>
+            <div class="osi-name">Application</div>
+            <div class="osi-detail">Reconstruct float32[5]→PWM</div>
+            <div class="osi-result" id="osi-rx-L7-r"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECURITY TAB -->
+    <div class="tab-pane" id="tab-sec">
+      <div style="font-size:11px;color:var(--dim);margin-bottom:8px;">กด <b style="color:var(--cyan)">SECURITY CHECK</b> เพื่อตรวจสอบ</div>
+      <div id="secChecks">
+        <div class="sec-check" id="sec-hmac">
+          <div class="sec-icon val-gray">[ — ]</div>
+          <div><div>HMAC-SHA256 Authentication</div><div class="sec-detail">PSK match verification</div></div>
+        </div>
+        <div class="sec-check" id="sec-crc">
+          <div class="sec-icon val-gray">[ — ]</div>
+          <div><div>CRC-32 Frame Check (WiFi FCS)</div><div class="sec-detail">Bit-level integrity</div></div>
+        </div>
+        <div class="sec-check" id="sec-seq">
+          <div class="sec-icon val-gray">[ — ]</div>
+          <div><div>Sequence Number Validation</div><div class="sec-detail">Anti-replay ordering</div></div>
+        </div>
+        <div class="sec-check" id="sec-replay">
+          <div class="sec-icon val-gray">[ — ]</div>
+          <div><div>Replay Attack Detection</div><div class="sec-detail">Nonce + timestamp</div></div>
+        </div>
+        <div class="sec-check" id="sec-mac">
+          <div class="sec-icon val-gray">[ — ]</div>
+          <div><div>ESPNOW MAC Address Filter</div><div class="sec-detail">Paired MAC whitelist</div></div>
+        </div>
+        <div class="sec-check" id="sec-blynk">
+          <div class="sec-icon val-gray">[ — ]</div>
+          <div><div>Blynk Auth Token Verify</div><div class="sec-detail">Cloud session auth</div></div>
+        </div>
+        <div class="sec-check" id="sec-mtu">
+          <div class="sec-icon val-gray">[ — ]</div>
+          <div><div>MTU Size Validation</div><div class="sec-detail">Frame ≤ MTU limit check</div></div>
+        </div>
+        <div class="sec-check" id="sec-timeout">
+          <div class="sec-icon val-gray">[ — ]</div>
+          <div><div>IoT Session Timeout Guard</div><div class="sec-detail">5s timeout watchdog</div></div>
+        </div>
+      </div>
+      <div id="secScore" class="metric-row" style="margin-top:10px;display:none">
+        <span class="metric-key">Security Score</span>
+        <span class="metric-val val-green" id="secScoreVal">—</span>
+      </div>
+    </div>
+
+    <!-- NET COMPARE TAB -->
+    <div class="tab-pane" id="tab-net">
+      <table class="net-table">
+        <thead>
+          <tr>
+            <th>Profile</th>
+            <th>Latency</th>
+            <th>Loss</th>
+            <th>Jitter</th>
+            <th>MTU</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody id="netTableBody"></tbody>
+      </table>
+      <div style="margin-top:12px;">
+        <div class="sec-title">Key Metrics (IoT Context)</div>
+        <div style="font-size:11px;line-height:1.9;color:var(--dim);">
+          <span style="color:var(--yellow)">◆ Latency</span> — ถ้า >1000ms ผู้ใช้รับรสหลัง "เห็น" VR แล้ว<br>
+          <span style="color:var(--cyan)">◆ Jitter</span> — ความไม่สม่ำเสมอ ทำให้รสชาติสะดุด<br>
+          <span style="color:var(--green)">◆ Packet Loss</span> — รสบางช่องหาย เช่น หวานได้ แต่ไม่เค็ม<br>
+          <span style="color:var(--magenta)">◆ MTU</span> — ESPNOW จำกัด 250B ต้อง payload กระชับ<br>
+          <span style="color:var(--purple)">◆ Protocol</span> — ESPNOW เร็วที่สุด, Blynk ยืดหยุ่นระยะไกล
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULT TAB -->
+    <div class="tab-pane" id="tab-result">
+      <div id="resultEmpty" style="text-align:center;padding:40px 20px;color:var(--dim);font-size:13px;">
+        <div style="font-size:32px;margin-bottom:10px;">📋</div>
+        <div>ยังไม่มีผลการทดสอบ<br><span style="font-size:11px;">รัน Simulation แล้วผลจะแสดงที่นี่</span></div>
+      </div>
+      <div id="resultContent" style="display:none;overflow-y:auto;max-height:calc(100vh - 320px);">
+
+        <!-- Header -->
+        <div class="res-header">
+          <div class="res-title">SIMULATION RESULT</div>
+          <div class="res-scenario" id="res-scenario">—</div>
+        </div>
+
+        <!-- Overview + Final Report -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+          <!-- Overview -->
+          <div class="res-card">
+            <div class="res-card-title" style="color:var(--cyan)">▌ ภาพรวมการทดสอบ (Simulation Overview)</div>
+            <div class="res-item"><span class="res-dot" style="background:var(--green)"></span>Total Packets Delivered: <strong id="res-delivered" style="color:var(--green)">—</strong></div>
+            <div class="res-item"><span class="res-dot" style="background:var(--cyan)"></span>Avg. Latency: <strong id="res-avglat" style="color:var(--cyan)">—</strong></div>
+            <div class="res-item"><span class="res-dot" style="background:var(--yellow)"></span>Packet Drops: <strong id="res-drops" style="color:var(--yellow)">—</strong></div>
+            <div class="res-item"><span class="res-dot" style="background:var(--purple)"></span>Protocol Used: <strong id="res-proto" style="color:var(--purple)">—</strong></div>
+            <div class="res-item"><span class="res-dot" style="background:var(--magenta)"></span>Tastant Consumed: <strong id="res-cart" style="color:var(--magenta)">—</strong></div>
+          </div>
+          <!-- Final Report terminal-style -->
+          <div class="res-terminal" id="res-terminal-block">
+            <div style="color:var(--green);margin-bottom:4px;">====================================</div>
+            <div style="color:var(--yellow);font-weight:bold;letter-spacing:2px;">  FINAL SIMULATION REPORT</div>
+            <div style="color:var(--green);margin-bottom:6px;">====================================</div>
+            <div id="res-final-lines"></div>
+            <div style="color:var(--green);margin-top:4px;">====================================</div>
+          </div>
+        </div>
+
+        <!-- Tick log table -->
+        <div class="res-card" style="margin-bottom:12px;">
+          <div class="res-card-title" style="color:var(--yellow)">▌ Packet Tick Log (Per-Packet Detail)</div>
+          <table class="res-table">
+            <thead>
+              <tr>
+                <th>Tick</th><th>Packet ID</th><th>Route</th>
+                <th>Latency</th><th>Status</th><th>Dominant Taste</th><th>PWM</th>
+              </tr>
+            </thead>
+            <tbody id="res-tick-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Key Metrics Analysis -->
+        <div class="res-card" style="margin-bottom:12px;">
+          <div class="res-card-title" style="color:var(--green)">▌ ตัวชี้วัดประสิทธิภาพ (Key Metrics Analysis)</div>
+          <div id="res-metrics-list"></div>
+        </div>
+
+        <!-- Scenario Analysis -->
+        <div class="res-card" style="margin-bottom:12px;">
+          <div class="res-card-title" style="color:var(--purple)">▌ การวิเคราะห์ระบบ (System Analysis)</div>
+          <div id="res-analysis"></div>
+        </div>
+
+        <!-- QoS Events -->
+        <div class="res-card" id="res-qos-card" style="margin-bottom:12px;display:none">
+          <div class="res-card-title" style="color:var(--red)">▌ QoS & Safety Events</div>
+          <div id="res-qos-list"></div>
+        </div>
+
+        <!-- Verdict -->
+        <div class="res-verdict" id="res-verdict">
+          <div class="res-verdict-icon" id="res-verdict-icon">✓</div>
+          <div>
+            <div class="res-verdict-label" id="res-verdict-label">PASS</div>
+            <div class="res-verdict-text" id="res-verdict-text">—</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Terminal Log -->
+    <div>
+      <div class="sec-title" style="margin-bottom:6px;">Terminal Log</div>
+      <div class="terminal" id="termLog">
+        <span class="log-node">[TTN v4.0]</span> <span class="log-ok">System initialized — e-Taste IoT Simulation ready</span><br>
+        <span class="log-node">[BOOT]</span>    <span class="log-info">ESP32-C3 SRC & DST nodes online</span><br>
+        <span class="log-node">[BOOT]</span>    <span class="log-info">Sensor Patch ADC 16-bit calibrated</span><br>
+        <span class="log-node">[BOOT]</span>    <span class="log-info">EM Minipump Actuator ready</span><br>
+        <span class="log-info">เลือก Dataset และ Network แล้วกด START</span><br>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RIGHT PANEL ══ -->
+  <div class="panel-right">
+
+    <div class="sec-title">Network Metrics</div>
+    <div class="metric-row"><span class="metric-key">Protocol</span><span class="metric-val val-cyan" id="m-proto">—</span></div>
+    <div class="metric-row"><span class="metric-key">Latency (target)</span><span class="metric-val val-green" id="m-lat">—</span></div>
+    <div class="metric-row"><span class="metric-key">Avg Latency (actual)</span><span class="metric-val val-green" id="m-alat">—</span></div>
+    <div class="metric-row"><span class="metric-key">Jitter</span><span class="metric-val val-cyan" id="m-jitter">—</span></div>
+    <div class="metric-row"><span class="metric-key">Packet Loss</span><span class="metric-val" id="m-loss">—</span></div>
+    <div class="metric-row"><span class="metric-key">MTU Size</span><span class="metric-val val-cyan" id="m-mtu">—</span></div>
+    <div class="metric-row"><span class="metric-key">Bandwidth</span><span class="metric-val val-green" id="m-bw">—</span></div>
+    <div class="metric-row"><span class="metric-key">Range</span><span class="metric-val val-cyan" id="m-range">—</span></div>
+
+    <div style="margin-top:16px;">
+      <div class="sec-title">Session Stats</div>
+      <div class="metric-row"><span class="metric-key">Packets Sent</span><span class="metric-val val-cyan" id="s-sent">0</span></div>
+      <div class="metric-row"><span class="metric-key">Delivered</span><span class="metric-val val-green" id="s-recv">0</span></div>
+      <div class="metric-row"><span class="metric-key">Dropped</span><span class="metric-val val-red" id="s-drop">0</span></div>
+      <div class="metric-row">
+        <span class="metric-key">Success Rate</span>
+        <span class="metric-val" id="s-rate">—</span>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <div class="sec-title">Dataset Info</div>
+      <div class="metric-row"><span class="metric-key">ID</span><span class="metric-val val-cyan" id="d-id">—</span></div>
+      <div class="metric-row"><span class="metric-key">Label</span><span class="metric-val" id="d-label">—</span></div>
+      <div class="metric-row"><span class="metric-key">Origin</span><span class="metric-val val-magenta" id="d-origin">—</span></div>
+      <div class="metric-row"><span class="metric-key">ADC Bits</span><span class="metric-val val-cyan" id="d-adc">—</span></div>
+      <div class="metric-row"><span class="metric-key">Sample Rate</span><span class="metric-val val-green" id="d-rate">—</span></div>
+      <div class="metric-row"><span class="metric-key">Payload Size</span><span class="metric-val val-cyan" id="d-size">—</span></div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <div class="sec-title">QoS & Safety</div>
+      <div class="metric-row">
+        <span class="metric-key">Tastant Cartridge</span>
+        <span class="metric-val val-green" id="rp-cartridge">100% (10.00 µL)</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-key">Salty Guard</span>
+        <span class="metric-val val-green">V[Salty] ≤ 0.25</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-key">HW Safety Lock</span>
+        <span class="metric-val val-green">EM Pump 100% cut</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-key">Session Timeout</span>
+        <span class="metric-val val-green">5s → Auto cutoff</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-key">End-to-End Target</span>
+        <span class="metric-val val-cyan">< 20 ms</span>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <div class="sec-title">HITL Controls</div>
+      <div style="font-size:11px;color:var(--dim);line-height:1.8;">
+        <span style="color:var(--green)">①</span> Sensory EQ — adjust taste intensity<br>
+        <span style="color:var(--yellow)">②</span> RED STOP — cut power &lt;10ms<br>
+        <span style="color:var(--cyan)">③</span> Cartridge — alert at &lt;10% level
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════
+const DATASETS = {
+  "1": {id:"DS-001",label:"Wagyu Steak",      ch_sweet:0.10,ch_salty:0.40,ch_sour:0.00,ch_bitter:0.10,ch_umami:0.90,size_kb:2.4,origin:"JP",sample_rate:"1 kHz",adc_bits:16},
+  "2": {id:"DS-002",label:"Salmon Sushi",     ch_sweet:0.20,ch_salty:0.50,ch_sour:0.30,ch_bitter:0.00,ch_umami:0.70,size_kb:1.8,origin:"JP",sample_rate:"1 kHz",adc_bits:16},
+  "3": {id:"DS-003",label:"Truffle Risotto",  ch_sweet:0.10,ch_salty:0.30,ch_sour:0.00,ch_bitter:0.20,ch_umami:0.95,size_kb:2.6,origin:"IT",sample_rate:"2 kHz",adc_bits:24},
+  "4": {id:"DS-004",label:"Tom Yum Soup",     ch_sweet:0.20,ch_salty:0.40,ch_sour:0.80,ch_bitter:0.00,ch_umami:0.60,size_kb:1.5,origin:"TH",sample_rate:"1 kHz",adc_bits:16},
+  "5": {id:"DS-005",label:"Choc Lava Cake",   ch_sweet:0.90,ch_salty:0.10,ch_sour:0.00,ch_bitter:0.35,ch_umami:0.00,size_kb:1.2,origin:"FR",sample_rate:"500 Hz",adc_bits:12},
+  "6": {id:"DS-006",label:"Pad Thai",         ch_sweet:0.40,ch_salty:0.50,ch_sour:0.30,ch_bitter:0.00,ch_umami:0.65,size_kb:1.7,origin:"TH",sample_rate:"1 kHz",adc_bits:16},
+  "7": {id:"DS-007",label:"Caesar Salad",     ch_sweet:0.05,ch_salty:0.45,ch_sour:0.35,ch_bitter:0.20,ch_umami:0.40,size_kb:1.1,origin:"US",sample_rate:"500 Hz",adc_bits:12},
+  "8": {id:"DS-008",label:"Mango Sticky Rice",ch_sweet:0.85,ch_salty:0.15,ch_sour:0.10,ch_bitter:0.00,ch_umami:0.05,size_kb:1.0,origin:"TH",sample_rate:"500 Hz",adc_bits:12},
+};
+
+const NET_PROFILES = {
+  "1": {name:"ESPNOW (Local)",   lat:5,   loss:0.5, jitter:1,   bw:"1 Mbps",   mtu:250,  range:"200 m", protocol:"ESPNOW"},
+  "2": {name:"WiFi 802.11n",     lat:15,  loss:1.5, jitter:5,   bw:"72 Mbps",  mtu:1500, range:"50 m",  protocol:"UDP/IP"},
+  "3": {name:"IoT Cloud (Good)", lat:300, loss:0.5, jitter:50,  bw:"10 Mbps",  mtu:1500, range:"Global",protocol:"Blynk/HTTPS"},
+  "4": {name:"IoT Cloud (Fair)", lat:800, loss:3.0, jitter:200, bw:"1 Mbps",   mtu:1500, range:"Global",protocol:"Blynk/HTTPS"},
+  "5": {name:"IoT Cloud (Poor)", lat:2000,loss:10.0,jitter:500, bw:"256 Kbps", mtu:576,  range:"Global",protocol:"Blynk/HTTPS"},
+};
+
+const LINK_SEQ = [
+  {src:"SRC",dst:"AP1",pktId:"pkt-SRC-AP1",x1:20,y1:80,x2:265,y2:80},
+  {src:"AP1",dst:"IOT",pktId:"pkt-AP1-IOT",x1:370,y1:80,x2:560,y2:80},
+  {src:"IOT",dst:"AP2",pktId:"pkt-IOT-AP2",x1:560,y1:120,x2:560,y2:190},
+  {src:"AP2",dst:"DST",pktId:"pkt-AP2-DST",x1:490,y1:215,x2:310,y2:215},
+  {src:"DST",dst:null, pktId:"pkt-DST-end",x1:280,y1:215,x2:120,y2:215},
+];
+
+const NODE_LOGS = {
+  SRC: (pkt,net) => [
+    {c:"log-node", t:`▶ SRC · Sensor+ESP32 · 192.168.1.10`},
+    {c:"log-info", t:`[Sensor] อ่านค่าสารเคมี 5 ช่องผ่าน ADC ${pkt.adc_bits}-bit`},
+    {c:"log-l7",   t:`[L7] Serialize float32[5] → JSON payload (${pkt.size_kb} KB)`},
+    {c:"log-l7",   t:`[L6] gzip compress · ratio ~1.7× → ${(pkt.size_kb*0.6).toFixed(1)} KB`},
+    {c:"log-l7",   t:`[L5] seq=${pkt.seq.toString().padStart(4,'0')} session=${pkt.session}`},
+    {c:"log-l4",   t:`[L4] UDP 55100→7775 · len=${pkt.udp_len}B · DSCP=EF`},
+    {c:"log-l3",   t:`[L3] IP src=192.168.1.10 dst=10.0.0.10 TTL=64`},
+    {c:"log-l2",   t:`[L2] WiFi 802.11 HMAC=${pkt.hmac}`},
+    {c:"log-l1",   t:`[L1] Transmit 2.4GHz · ${net.bw}`},
+  ],
+  AP1: () => [
+    {c:"log-node", t:"▶ AP1 · WiFi AP (TX) · 192.168.1.1"},
+    {c:"log-l2",   t:"[L2] รับ WiFi frame จาก ESP32 (SRC)"},
+    {c:"log-l3",   t:"[L3] Forward packet → Internet / IoT Platform"},
+    {c:"log-l7",   t:"[App] Upload sensor data → Cloud"},
+  ],
+  IOT: (pkt,net) => [
+    {c:"log-node", t:"▶ IOT · IoT Cloud · 34.120.0.1"},
+    {c:"log-l7",   t:"[Cloud] รับ upload จาก Sensor side"},
+    {c:"log-l7",   t:"[Cloud] Store taste vector ชั่วคราว"},
+    {c:"log-warn", t:"[Cloud] Convert voltage → concentration"},
+    {c:"log-warn", t:"[Cloud] Map concentration → intensity level"},
+    {c:"log-ok",   t:`[Cloud] Generate PWM duty cycle สำหรับ EM pump`},
+    {c:"log-ok",   t:`[Cloud] Latency upload+download ~${net.lat}ms`},
+  ],
+  AP2: () => [
+    {c:"log-node", t:"▶ AP2 · WiFi AP (RX) · 10.0.0.1"},
+    {c:"log-l3",   t:"[L3] Download actuator command จาก Cloud"},
+    {c:"log-l2",   t:"[L2] Forward WiFi frame → ESP32 (DST)"},
+  ],
+  DST: (pkt) => [
+    {c:"log-node", t:"▶ DST · ESP32+Actuator · 10.0.0.10"},
+    {c:"log-ok",   t:"[L2] รับ WiFi frame — CRC PASS ✓"},
+    {c:"log-ok",   t:"[L4] UDP checksum — PASS ✓"},
+    {c:"log-ok",   t:"[L5] Sequence in-order ✓"},
+    {c:"log-l7",   t:"[L6] Decompress gzip ✓"},
+    {c:"log-l7",   t:"[L7] Reconstruct taste vector float32[5] ✓"},
+    {c:"log-warn", t:"[MCU] แปลง concentration → PWM duty cycle"},
+    {c:"log-em",   t:"[EM] สั่ง minipump inject tastant solution 💧"},
+    {c:"log-ok",   t:`[OK] Dominant: ${pkt.dominant.replace('ch_','').toUpperCase()} = ${pkt.dominant_val.toFixed(3)}`},
+  ],
+};
+
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let simRunning = false;
+let simAborted = false;
+let simSent = 0, simRecv = 0, simDrop = 0;
+let simLatencies = [];
+let simTickLog   = [];
+let simQoSEvents = [];
+
+// ══════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════
+function rand(min,max){ return Math.random()*(max-min)+min; }
+
+function log(html, cls='log-info'){
+  const term = document.getElementById('termLog');
+  const now = new Date().toLocaleTimeString('en-US',{hour12:false});
+  term.innerHTML += `<span class="log-ts">[${now}]</span> <span class="${cls}">${html}</span><br>`;
+  // Cap at 200 lines to prevent DOM bloat
+  const lines = term.querySelectorAll('br');
+  if(lines.length > 200){
+    const rawLines = term.innerHTML.split('<br>');
+    term.innerHTML = rawLines.slice(-150).join('<br>');
+  }
+  term.scrollTop = term.scrollHeight;
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+function setNodeState(id, state){
+  const el = document.getElementById('node-'+id);
+  if(!el) return;
+  el.className = `topo-node state-${state}`;
+}
+
+function resetNodes(){ ['SRC','AP1','IOT','AP2','DST'].forEach(n=>setNodeState(n,'idle')); }
+
+function updateStatus(txt, cls=''){
+  const dot = document.getElementById('simDot');
+  const txt_el = document.getElementById('simStatusText');
+  dot.className = 'sim-dot' + (cls?' '+cls:'');
+  txt_el.textContent = txt;
+  txt_el.style.color = cls==='running' ? 'var(--green)' : cls==='error' ? 'var(--red)' : 'var(--dim)';
+}
+
+function updateMetrics(net, ds){
+  const nk = document.getElementById('networkSel').value;
+  document.getElementById('m-proto').textContent = net.protocol;
+  document.getElementById('m-lat').textContent = net.lat + ' ms';
+  document.getElementById('m-jitter').textContent = '±'+net.jitter+' ms';
+  const lossEl = document.getElementById('m-loss');
+  lossEl.textContent = net.loss + '%';
+  lossEl.className = 'metric-val ' + (net.loss > 5 ? 'val-red' : net.loss > 1 ? 'val-yellow' : 'val-green');
+  document.getElementById('m-mtu').textContent = net.mtu + ' B';
+  document.getElementById('m-bw').textContent = net.bw;
+  document.getElementById('m-range').textContent = net.range;
+  document.getElementById('d-id').textContent = ds.id;
+  document.getElementById('d-label').textContent = ds.label;
+  document.getElementById('d-origin').textContent = ds.origin;
+  document.getElementById('d-adc').textContent = ds.adc_bits + '-bit';
+  document.getElementById('d-rate').textContent = ds.sample_rate;
+  document.getElementById('d-size').textContent = ds.size_kb + ' KB';
+}
+
+function updateSessionStats(){
+  document.getElementById('s-sent').textContent = simSent;
+  document.getElementById('s-recv').textContent = simRecv;
+  document.getElementById('s-drop').textContent = simDrop;
+  const rate = simSent > 0 ? ((simRecv/simSent)*100).toFixed(1)+'%' : '—';
+  const rateEl = document.getElementById('s-rate');
+  rateEl.textContent = rate;
+  rateEl.className = 'metric-val ' + (simSent>0 && simRecv/simSent>0.95?'val-green':simRecv/simSent>0.7?'val-yellow':'val-red');
+}
+
+function showTasteVector(ds){
+  const channels = ['sweet','salty','sour','bitter','umami'];
+  const vals = channels.map(c=>ds['ch_'+c]);
+  const maxV = Math.max(...vals);
+  const domIdx = vals.indexOf(maxV);
+
+  channels.forEach((c,i)=>{
+    const v = vals[i];
+    document.getElementById('bar-'+c).style.width = (v*100)+'%';
+    document.getElementById('val-'+c).textContent = v.toFixed(3);
+    document.getElementById('dom-'+c).classList.toggle('show', i===domIdx);
+  });
+
+  const domName = channels[domIdx].toUpperCase();
+  document.getElementById('domOut').textContent = domName + ' = ' + maxV.toFixed(3);
+  const pwm = Math.round(maxV * 100);
+  document.getElementById('pwmOut').textContent = pwm + '% (' + Math.round(pwm*1.5) + ' µA)';
+  document.getElementById('vectorOut').textContent =
+    '[' + vals.map(v=>v.toFixed(2)).join(', ') + ']';
+  const alat = simLatencies.length ? (simLatencies.reduce((a,b)=>a+b,0)/simLatencies.length).toFixed(0)+'ms' : '—';
+  document.getElementById('m-alat').textContent = alat;
+}
+
+function clearTasteVector(){
+  ['sweet','salty','sour','bitter','umami'].forEach(c=>{
+    document.getElementById('bar-'+c).style.width = '0%';
+    document.getElementById('val-'+c).textContent = '0.000';
+    document.getElementById('dom-'+c).classList.remove('show');
+  });
+  document.getElementById('domOut').textContent = '—';
+  document.getElementById('pwmOut').textContent = '—';
+  document.getElementById('vectorOut').textContent = '[—]';
+}
+
+// ── Packet animation ──
+async function animateLink(seg, lost, speedMs){
+  const dot = document.getElementById(seg.pktId);
+  if(!dot) return;
+  dot.className = 'pkt-dot' + (lost?' lost':'');
+
+  const steps = 24;
+  for(let i=0; i<=steps; i++){
+    if(simAborted){ dot.style.opacity=0; return; }
+    const t = i/steps;
+    const x = seg.x1 + (seg.x2-seg.x1)*t;
+    const y = seg.y1 + (seg.y2-seg.y1)*t;
+    dot.setAttribute('cx', x);
+    dot.setAttribute('cy', y);
+    dot.style.opacity = i<3||i>steps-3 ? (i<3?i/3:(steps-i)/3) : 1;
+    await sleep(speedMs/steps);
+  }
+  dot.style.opacity = 0;
+}
+
+// ── Per-node log with delay ──
+async function nodeLog(nodeId, pkt, net, delayMs){
+  const entries = NODE_LOGS[nodeId];
+  if(!entries) return;
+  const rows = typeof entries === 'function' ? entries(pkt, net) : entries;
+  for(const {c,t} of rows){
+    log(t, c);
+    await sleep(delayMs);
+  }
+}
+
+// ── Build packet object ──
+function makePacket(seq, ds, net){
+  const channels = ['sweet','salty','sour','bitter','umami'];
+  const vals = channels.map(c=>ds['ch_'+c]);
+  const maxV = Math.max(...vals);
+  const domIdx = vals.indexOf(maxV);
+  const session = Math.random().toString(36).slice(2,10).toUpperCase();
+  const id      = Math.random().toString(36).slice(2,10).toUpperCase();
+  const hmac    = (Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)).slice(0,16).toUpperCase();
+  return {
+    seq, session, id, hmac,
+    adc_bits: ds.adc_bits,
+    size_kb:  ds.size_kb,
+    udp_len:  Math.round(ds.size_kb*1024)+8,
+    dominant: 'ch_'+channels[domIdx],
+    dominant_val: maxV,
+  };
+}
+
+// ═══════════════════════════════════════════
+//  LATENCY PROGRESS BAR — safe version
+// ═══════════════════════════════════════════
+let latTimerInterval = null;
+
+async function showLatencyWait(ms, label){
+  if(ms < 30) return; // skip trivial waits
+  const barColor = ms < 50 ? 'var(--green)' : ms < 500 ? 'var(--yellow)' : 'var(--red)';
+  const id = 'lb' + (++_latBarId);
+  const term = document.getElementById('termLog');
+  term.innerHTML +=
+    `<div style="margin:2px 0;font-family:var(--mono);font-size:10px;color:${barColor}">[WAIT] ${label} — ${ms}ms` +
+    `<div style="width:100%;height:4px;background:#1c2d4a;border-radius:2px;margin-top:2px">` +
+    `<div id="${id}" style="width:0%;height:100%;background:${barColor};border-radius:2px;transition:width ${ms}ms linear"></div>` +
+    `</div></div>`;
+  term.scrollTop = term.scrollHeight;
+  // trigger CSS transition
+  await sleep(20);
+  const bar = document.getElementById(id);
+  if(bar) bar.style.width = '100%';
+  // actual wait
+  await sleep(ms);
+}
+let _latBarId = 0;
+
+// ═══════════════════════════════════════════
+//  LIVE LATENCY COUNTER
+// ═══════════════════════════════════════════
+function startLatencyCounter(net){
+  clearLiveCounter();
+  const el = document.getElementById('m-alat');
+  latTimerInterval = setInterval(()=>{
+    if(!simRunning){ clearLiveCounter(); return; }
+    const cur = Math.max(1, net.lat + rand(-net.jitter*0.3, net.jitter*0.3));
+    el.textContent = cur.toFixed(0) + 'ms ⟳';
+    el.className = 'metric-val ' + (cur < 50 ? 'val-green' : cur < 500 ? 'val-yellow' : 'val-red');
+  }, 100);
+}
+function clearLiveCounter(){
+  if(latTimerInterval){ clearInterval(latTimerInterval); latTimerInterval = null; }
+}
+
+// ═══════════════════════════════════════════
+//  MAIN SIMULATION
+// ═══════════════════════════════════════════
+async function runSimulation(dsKey, netKey, numPkts){
+  if(simRunning) return;
+  simRunning = true;
+  simAborted = false;
+  simSent = 0; simRecv = 0; simDrop = 0;
+  simLatencies = [];
+  simTickLog = [];
+  simQoSEvents = [];
+
+  try {
+  const ds  = DATASETS[dsKey];
+  const net = NET_PROFILES[netKey];
+  updateMetrics(net, ds);
+  clearTasteVector();
+
+  // ── Speed mapping: ESPNOW=fast, Cloud Poor=very slow ──
+  // Packet dot animation speed (ms total for one hop)
+  const animDuration = {
+    "1": 400,   // ESPNOW    — zippy
+    "2": 600,   // WiFi      — normal
+    "3": 1200,  // Cloud Good— noticeable
+    "4": 2200,  // Cloud Fair— sluggish
+    "5": 4000,  // Cloud Poor— painful
+  }[netKey] || 800;
+
+  // Per-node log step delay — cap ที่ 60ms เพื่อไม่ให้ช้าเกินไป
+  const logDelay = {
+    "1": 15, "2": 20, "3": 35, "4": 45, "5": 60,
+  }[netKey] || 30;
+
+  // Hop latency wait — สะท้อนความต่างของ network ได้ชัด แต่ไม่นานเกิน
+  const hopDelays = {
+    "1": [0,   0,   0,   0  ],  // ESPNOW   — ไม่ต้องรอ
+    "2": [0,   15,  15,  0  ],  // WiFi     — รอนิดหน่อย
+    "3": [0,   250, 250, 0  ],  // Cloud G  — รอพอรู้สึก
+    "4": [0,   500, 500, 0  ],  // Cloud F  — รอนาน
+    "5": [0,   800, 800, 0  ],  // Cloud P  — รอนานมาก (cap 800ms)
+  }[netKey] || [0,20,20,0];
+
+  // Jitter label colors
+  const netColor = {'1':'#00ff88','2':'#00e5ff','3':'#00e5ff','4':'#ffd600','5':'#ff3d57'}[netKey];
+
+  // build pip indicators
+  const prog = document.getElementById('pktProgress');
+  prog.innerHTML = '';
+  const pips = [];
+  for(let i=0;i<numPkts;i++){
+    const pip = document.createElement('div');
+    pip.className = 'pkt-pip';
+    pip.style.background = 'var(--border)';
+    prog.appendChild(pip);
+    pips.push(pip);
+  }
+
+  document.getElementById('startBtn').disabled = true;
+  updateStatus(`▶ ${net.name} · ${ds.label} · lat=${net.lat}ms · loss=${net.loss}%`, 'running');
+  log(`=== SESSION START · ${ds.id} · ${ds.label} · ${net.name} ===`, 'log-ok');
+  log(`Protocol:${net.protocol}  Lat:${net.lat}ms  Jitter:±${net.jitter}ms  Loss:${net.loss}%  MTU:${net.mtu}B`, 'log-info');
+
+  // Show network profile warning
+  if(net.lat >= 2000){
+    log(`⚠ WARNING: IoT Cloud Poor — expect severe delay & packet loss!`, 'log-err');
+  } else if(net.lat >= 500){
+    log(`⚠ NOTICE: IoT Cloud — latency will be noticeable (~${net.lat}ms)`, 'log-warn');
+  } else if(net.lat <= 10){
+    log(`✓ ESPNOW Local — ultra-low latency mode`, 'log-ok');
+  }
+
+  startLatencyCounter(net);
+
+  for(let pktNum=1; pktNum<=numPkts; pktNum++){
+    if(simAborted) break;
+
+    pips[pktNum-1].className='pkt-pip cur';
+    const pkt = makePacket(pktNum-1, ds, net);
+    log(`--- Packet #${pktNum}/${numPkts} · ID:${pkt.id} ---`, 'log-node');
+    updateStatus(`Pkt #${pktNum}/${numPkts} · ID:${pkt.id} · ${net.name}`, 'running');
+
+    resetNodes();
+    let delivered = true;
+
+    for(let si=0; si<LINK_SEQ.length; si++){
+      const seg = LINK_SEQ[si];
+      if(simAborted){ delivered=false; break; }
+
+      setNodeState(seg.src, 'active');
+      await nodeLog(seg.src, pkt, net, logDelay);
+
+      // ── Show hop latency wait bar ──
+      const hopMs = hopDelays[si] || 20;
+      const hopJitter = Math.round(rand(-net.jitter*0.5, net.jitter*0.5));
+      const actualHopMs = Math.max(2, hopMs + hopJitter);
+
+      // Color-coded hop label
+      const hopLabel = `${seg.src}→${seg.dst||'DST'} transit (±${hopJitter}ms jitter)`;
+      if(actualHopMs > 30){
+        await showLatencyWait(actualHopMs, hopLabel);
+      }
+      if(simAborted){ delivered=false; break; }
+
+      // ── Packet drop check (per hop) ──
+      const dropped = (Math.random()*100) < net.loss;
+      await animateLink(seg, dropped, animDuration);
+
+      if(dropped){
+        setNodeState(seg.src, 'lost');
+        log(`!! PACKET LOST at ${seg.src}→${seg.dst||'—'} · WiFi interference / cloud timeout`, 'log-err');
+        updateStatus(`Pkt#${pktNum} DROPPED at ${seg.src}→${seg.dst||'—'}`, 'error');
+        delivered = false;
+        pips[pktNum-1].style.background = 'var(--red)';
+        pips[pktNum-1].className='pkt-pip lost';
+        await sleep(300);
+        break;
+      }
+
+      setNodeState(seg.src, 'idle');
+      if(seg.dst) setNodeState(seg.dst, 'active');
+    }
+
+    if(simAborted) break;
+
+    simSent++;
+
+    if(delivered){
+      const crcFail = (Math.random()*100) < net.loss*0.3;
+      if(crcFail){
+        setNodeState('DST','lost');
+        log(`!! CRC FAIL at DST — frame discarded`, 'log-err');
+        simDrop++;
+        pips[pktNum-1].className='pkt-pip lost';
+      } else {
+        setNodeState('DST','done');
+        await nodeLog('DST', pkt, net, logDelay);
+        const totalLat = Math.max(1, net.lat + rand(-net.jitter, net.jitter));
+        simLatencies.push(totalLat);
+        simRecv++;
+
+        // ── Record tick ──
+        recordTick({id:pkt.id, ok:true, lat:totalLat});
+
+        // Color latency display by quality
+        const latColor = totalLat<50?'log-ok':totalLat<500?'log-warn':'log-err';
+        log(`>> DELIVERED · E2E lat=${totalLat.toFixed(0)}ms · dom=${pkt.dominant.replace('ch_','').toUpperCase()}=${pkt.dominant_val.toFixed(3)}`, latColor);
+        updateStatus(`✓ Pkt#${pktNum} DELIVERED · E2E=${totalLat.toFixed(0)}ms · ${net.name}`, 'running');
+        pips[pktNum-1].style.background = netColor;
+        pips[pktNum-1].className='pkt-pip ok';
+        document.getElementById('m-alat').textContent = totalLat.toFixed(0)+'ms';
+        document.getElementById('m-alat').className = 'metric-val '+(totalLat<50?'val-green':totalLat<500?'val-yellow':'val-red');
+        showTasteVector(ds);
+      }
+    } else {
+      simDrop++;
+      recordTick({id:pkt.id, ok:false, lat:null});
+    }
+
+    updateSessionStats();
+    await sleep(150);
+  }
+
+  const lr  = simSent > 0 ? ((1-simRecv/simSent)*100).toFixed(1) : '0.0';
+  const al  = simLatencies.length ? (simLatencies.reduce((a,b)=>a+b)/simLatencies.length).toFixed(0) : 'N/A';
+  const lrNum = parseFloat(lr);
+  const summary_cls = lrNum>10?'log-err':lrNum>3?'log-warn':'log-ok';
+  log(`=== DONE · sent=${simSent} recv=${simRecv} loss=${lr}% avg_lat=${al}ms proto=${net.protocol} ===`, summary_cls);
+
+  if(net.lat>=2000 && simRecv<simSent){
+    log(`⚠ VERDICT: Cloud Poor — รสชาติขาดหาย/ล่าช้า ไม่เหมาะ Real-time Taste`, 'log-err');
+  } else if(net.lat<=10){
+    log(`✓ VERDICT: ESPNOW Local — Sync ครบ 5 สัมผัส ภายใต้ 20ms ✓`, 'log-ok');
+  }
+
+  updateStatus(`Complete · loss=${lr}% · avg_lat=${al}ms`, '');
+
+  // Generate result report
+  if(!simAborted && simSent > 0){
+    const ds  = DATASETS[dsKey];
+    const net = NET_PROFILES[netKey];
+    generateResult(ds, net, numPkts);
+  }
+
+  } catch(e) {
+    console.error('Simulation error:', e);
+    log('!! Simulation error: ' + e.message, 'log-err');
+  } finally {
+    clearLiveCounter();
+    resetNodes();
+    simRunning = false;
+    document.getElementById('startBtn').disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════
+//  UI ACTIONS
+// ═══════════════════════════════════════════
+function colorLinks(netKey){
+  const colors = {'1':'#00ff88','2':'#00e5ff','3':'#00e5ff','4':'#ffd600','5':'#ff3d57'};
+  const c = colors[netKey]||'#1c2d4a';
+  document.querySelectorAll('.link-path').forEach(el=>el.style.stroke=c);
+  // color dot too
+  document.querySelectorAll('.pkt-dot').forEach(el=>{
+    el.style.fill=c;
+    el.style.filter=`drop-shadow(0 0 6px ${c})`;
+  });
+}
+
+function startSim(){
+  if(simRunning) return;
+  const dsKey  = document.getElementById('datasetSel').value;
+  const netKey = document.getElementById('networkSel').value;
+  const num    = parseInt(document.getElementById('pktCount').value);
+  switchTab('topo', document.querySelector('.tab-btn'));
+  colorLinks(netKey);
+  runSimulation(dsKey, netKey, num);
+}
+
+function quickDemo(){
+  if(simRunning) return;
+  document.getElementById('datasetSel').value = '4';
+  document.getElementById('networkSel').value = '1';
+  document.getElementById('pktCount').value = '2';
+  document.getElementById('pktCountVal').textContent = '2';
+  switchTab('topo', document.querySelector('.tab-btn'));
+  colorLinks('1');
+  runSimulation('4','1',2);
+}
+
+async function runStressTest(){
+  if(simRunning) return;
+  switchTab('topo', document.querySelector('.tab-btn'));
+  log('=== STRESS TEST: IoT Cloud Poor vs ESPNOW ===', 'log-warn');
+  log('⚠ Round 1: Tom Yum · IoT Cloud (Poor) · 2 packets — expect ~2000ms delay!', 'log-err');
+  colorLinks('5');
+  await runSimulation('4','5',2);
+  if(simAborted) return;
+  await sleep(600);
+  log('✓ Round 2: Tom Yum · ESPNOW Local · 2 packets — ultra fast!', 'log-ok');
+  colorLinks('1');
+  await runSimulation('4','1',2);
+}
+
+function emergencyStop(){
+  simAborted = true;
+  simRunning = false;
+  resetNodes();
+  clearTasteVector();
+  const overlay = document.getElementById('haltOverlay');
+  overlay.classList.add('show');
+  updateStatus('⚠ EMERGENCY STOP — System HALTED · UDP Disconnected · Power Cutoff < 10ms', 'error');
+  log('!! RED EMERGENCY STOP triggered!', 'log-err');
+  log('!! HARDWARE: UDP Disconnected · Power Cutoff in 6ms (<10ms)', 'log-err');
+  log('!! EM Pump: OFF · Safety Lock engaged', 'log-err');
+  document.getElementById('startBtn').disabled = false;
+  setTimeout(()=>overlay.classList.remove('show'), 3000);
+}
+
+// ── Security ──
+async function runSecurity(){
+  switchTab('sec', document.querySelectorAll('.tab-btn')[2]);
+  const checks = [
+    {id:'sec-hmac',   label:'HMAC-SHA256 Authentication',  ok:true,  detail:'PSK match — frame accepted'},
+    {id:'sec-crc',    label:'CRC-32 Frame Check (WiFi FCS)',ok:true,  detail:'ไม่พบ bit-error — data intact'},
+    {id:'sec-seq',    label:'Sequence Number Validation',   ok:true,  detail:'seq in-order, no gap detected'},
+    {id:'sec-replay', label:'Replay Attack Detection',      ok:true,  detail:'Nonce + timestamp — duplicate discarded'},
+    {id:'sec-mac',    label:'ESPNOW MAC Address Filter',    ok:true,  detail:'Paired MAC only — stranger blocked'},
+    {id:'sec-blynk',  label:'Blynk Auth Token Verify',      ok:true,  detail:'Token valid — cloud session open'},
+    {id:'sec-mtu',    label:'MTU Size Validation',           ok:true,  detail:'Frame ≤ MTU 1500B — OK'},
+    {id:'sec-timeout',label:'IoT Session Timeout Guard',    ok:true,  detail:'Timeout=5s — session alive'},
+  ];
+  log('--- Security Verification (Layer 2-7) ---', 'log-sec');
+  // reset
+  checks.forEach(({id})=>{
+    const el = document.getElementById(id);
+    el.querySelector('.sec-icon').className='sec-icon val-gray';
+    el.querySelector('.sec-icon').textContent='[ — ]';
+  });
+  document.getElementById('secScore').style.display='none';
+
+  for(const {id,label,ok,detail} of checks){
+    await sleep(200);
+    const el = document.getElementById(id);
+    const icon = el.querySelector('.sec-icon');
+    const det  = el.querySelector('.sec-detail');
+    icon.className = 'sec-icon ' + (ok?'pass':'fail');
+    icon.textContent = ok?'[PASS]':'[FAIL]';
+    det.textContent = detail;
+    log(`[${ok?'PASS':'FAIL'}] ${label} — ${detail}`, ok?'log-ok':'log-err');
+  }
+  const passed = checks.filter(c=>c.ok).length;
+  document.getElementById('secScore').style.display='flex';
+  document.getElementById('secScoreVal').textContent = `${passed}/${checks.length} checks passed (${Math.round(passed/checks.length*100)}%)`;
+  log(`Security Score: ${passed}/${checks.length} — 100% Passed`, 'log-sec');
+}
+
+// ── OSI ──
+async function showOSI(){
+  switchTab('osi', document.querySelectorAll('.tab-btn')[1]);
+  const ds = DATASETS[document.getElementById('datasetSel').value];
+  const layers = ['L7','L6','L5','L4','L3','L2','L1'];
+  const txResults = {
+    L7:`${ds.size_kb} KB raw`,
+    L6:`${(ds.size_kb*0.6).toFixed(1)} KB compressed`,
+    L5:'Session established',
+    L4:`Datagram ${Math.round(ds.size_kb*1024)+8}B`,
+    L3:'+20 bytes IP hdr',
+    L2:'Frame queued at AP',
+    L1:'Bits transmitted OTA',
+  };
+  const rxResults = {
+    L1:'Bits received OTA',L2:'CRC PASS ✓',L3:'Route OK ✓',
+    L4:'Checksum OK ✓',L5:'Seq OK ✓',L6:'Decompressed ✓',
+    L7:'float32[5] → PWM',
+  };
+
+  // reset
+  layers.forEach(l=>{
+    ['osi-tx-','osi-rx-'].forEach(p=>{
+      const el=document.getElementById(p+l);
+      if(el){ el.classList.remove('active'); document.getElementById(p+l+'-r').textContent=''; }
+    });
+  });
+
+  log('--- OSI WALKTHROUGH: TX Encapsulation L7→L1 ---', 'log-sec');
+  for(const l of layers){
+    await sleep(220);
+    const el = document.getElementById('osi-tx-'+l);
+    if(el){ el.classList.add('active'); document.getElementById('osi-tx-'+l+'-r').textContent=txResults[l]; }
+  }
+  await sleep(400);
+  log('--- OSI WALKTHROUGH: RX Decapsulation L1→L7 ---', 'log-sec');
+  for(const l of [...layers].reverse()){
+    await sleep(200);
+    const el = document.getElementById('osi-rx-'+l);
+    if(el){ el.classList.add('active'); document.getElementById('osi-rx-'+l+'-r').textContent=rxResults[l]; }
+  }
+  log('[OK] float32[5] reconstructed → PWM duty cycle → EM pump inject 💧', 'log-ok');
+}
+
+// ── Net Compare ──
+function showNetCompare(){
+  switchTab('net', document.querySelectorAll('.tab-btn')[3]);
+  const tbody = document.getElementById('netTableBody');
+  tbody.innerHTML = '';
+  const curNet = document.getElementById('networkSel').value;
+  for(const [key,cfg] of Object.entries(NET_PROFILES)){
+    const score = Math.max(0, 100 - Math.min(cfg.lat/20,50) - cfg.loss*3 - cfg.jitter/10);
+    const sc = score>70?'var(--green)':score>40?'var(--yellow)':'var(--red)';
+    const lc = cfg.loss>5?'var(--red)':cfg.loss>1?'var(--yellow)':'var(--green)';
+    const tr = document.createElement('tr');
+    if(key===curNet) tr.className='highlight';
+    tr.innerHTML = `
+      <td style="color:${score>70?'var(--green)':score>40?'var(--yellow)':'var(--red)'};font-weight:700">${cfg.name}</td>
+      <td style="color:${cfg.lat>500?'var(--red)':cfg.lat>100?'var(--yellow)':'var(--green)'}">${cfg.lat}ms</td>
+      <td style="color:${lc}">${cfg.loss}%</td>
+      <td style="color:var(--cyan)">±${cfg.jitter}ms</td>
+      <td style="color:var(--gray)">${cfg.mtu}B</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="score-bar-wrap"><div class="score-bar" style="background:${sc};width:${score}%"></div></div>
+          <span style="color:${sc};min-width:28px">${Math.round(score)}</span>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+// ── Tabs ──
+function switchTab(id, btn){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+}
+
+// ── Range ──
+document.getElementById('pktCount').addEventListener('input',function(){
+  document.getElementById('pktCountVal').textContent = this.value;
+});
+
+// ══════════════════════════════════════════
+//  CARTRIDGE SYSTEM
+// ══════════════════════════════════════════
+const CART_MAX_UL = 10.0;   // µL full cartridge
+const CART_DOSE   = 0.25;   // µL consumed per delivered packet
+let cartLevel = 100;        // percent
+let cartWarningShown = false;
+
+function initCartridgeDrops(){
+  const wrap = document.getElementById('cartDrops');
+  wrap.innerHTML = '';
+  for(let i=0;i<20;i++){
+    const d = document.createElement('div');
+    d.className = 'drop active';
+    d.id = 'drop'+i;
+    wrap.appendChild(d);
+  }
+}
+
+function updateCartridgeUI(){
+  const pctEl   = document.getElementById('cartPct');
+  const fillEl  = document.getElementById('cartFill');
+  const volEl   = document.getElementById('cartVolume');
+  const statEl  = document.getElementById('cartStatus');
+  const badgeEl = document.getElementById('cartWarningBadge');
+
+  pctEl.textContent = cartLevel + '%';
+  fillEl.style.width = cartLevel + '%';
+  const volUL = (cartLevel / 100 * CART_MAX_UL).toFixed(2);
+  volEl.textContent = `~${volUL} µL เหลืออยู่`;
+
+  // Color thresholds
+  if(cartLevel <= 0){
+    pctEl.style.color = 'var(--red)';
+    fillEl.style.background = 'linear-gradient(90deg,var(--red),#ff6b6b)';
+    statEl.textContent = 'DEPLETED';
+    statEl.style.color = 'var(--red)';
+    badgeEl.style.display = 'inline';
+    badgeEl.textContent = '⚠ EMPTY';
+  } else if(cartLevel <= 10){
+    pctEl.style.color = 'var(--red)';
+    fillEl.style.background = 'linear-gradient(90deg,var(--red),#ff6b6b)';
+    statEl.textContent = 'CRITICAL';
+    statEl.style.color = 'var(--red)';
+    badgeEl.style.display = 'inline';
+    badgeEl.textContent = '⚠ LOW';
+  } else if(cartLevel <= 30){
+    pctEl.style.color = 'var(--yellow)';
+    fillEl.style.background = 'linear-gradient(90deg,var(--yellow),#ffec6e)';
+    statEl.textContent = 'LOW';
+    statEl.style.color = 'var(--yellow)';
+    badgeEl.style.display = 'none';
+  } else {
+    pctEl.style.color = 'var(--green)';
+    fillEl.style.background = 'linear-gradient(90deg,var(--green),#00ffcc)';
+    statEl.textContent = 'READY';
+    statEl.style.color = 'var(--green)';
+    badgeEl.style.display = 'none';
+  }
+
+  // Update drops (20 drops = 100%)
+  const activeDrops = Math.round(cartLevel / 5);
+  for(let i=0;i<20;i++){
+    const d = document.getElementById('drop'+i);
+    if(!d) continue;
+    if(i < activeDrops){
+      d.classList.add('active');
+      d.style.background = cartLevel<=10?'var(--red)':cartLevel<=30?'var(--yellow)':'var(--cyan)';
+    } else {
+      d.classList.remove('active');
+      d.style.background = 'var(--border)';
+    }
+  }
+
+  // Also update right panel metric
+  const rpEl = document.getElementById('rp-cartridge');
+  if(rpEl){
+    rpEl.textContent = cartLevel + '% (' + (cartLevel/100*CART_MAX_UL).toFixed(2) + ' µL)';
+    rpEl.className = 'metric-val ' + (cartLevel<=10?'val-red':cartLevel<=30?'val-yellow':'val-green');
+  }
+}
+
+function consumeCartridge(amount=CART_DOSE){
+  if(cartLevel <= 0){
+    log('!! Cartridge EMPTY — EM Pump cannot inject tastant!', 'log-err');
+    return false;
+  }
+  // 1 dose = 0.25µL = 2.5% of 10µL cartridge
+  const pctConsumed = (amount / CART_MAX_UL) * 100;
+  cartLevel = Math.max(0, Math.round((cartLevel - pctConsumed) * 10) / 10);
+  updateCartridgeUI();
+
+  if(cartLevel <= 10 && !cartWarningShown && cartLevel > 0){
+    cartWarningShown = true;
+    showCartridgeWarning();
+  }
+  return true;
+}
+
+function showCartridgeWarning(){
+  document.getElementById('modalCartPct').textContent = cartLevel + '%';
+  document.getElementById('cartridgeModal').classList.add('show');
+  log(`!! [CARTRIDGE WARNING] Tastant Solution เหลือ ${cartLevel}% — ต่ำกว่าเกณฑ์ 10%`, 'log-err');
+  log('!! ระบบขออนุมัติจากผู้ใช้ (HITL) ก่อนดำเนินการต่อ', 'log-warn');
+}
+
+function confirmRefill(){
+  document.getElementById('cartridgeModal').classList.remove('show');
+  refillCartridge();
+}
+
+function dismissModal(){
+  document.getElementById('cartridgeModal').classList.remove('show');
+  log('[HITL] ผู้ใช้อนุมัติดำเนินการต่อ — EM Pump จะทำงานด้วยสารที่เหลืออยู่', 'log-warn');
+}
+
+function refillCartridge(){
+  cartLevel = 100;
+  cartWarningShown = false;
+  updateCartridgeUI();
+  log('[HITL] Cartridge refilled — Tastant Solution 100% (10.0 µL)', 'log-ok');
+  log('[EM] EM Minipump calibrated · Ready to inject', 'log-ok');
+}
+
+// ══════════════════════════════════════════
+//  SENSORY EQ — HITL SLIDERS
+// ══════════════════════════════════════════
+const EQ_CHANNELS = ['sweet','salty','sour','bitter','umami'];
+let eqOverride = {sweet:null,salty:null,sour:null,bitter:null,umami:null};
+let eqLogTimer = null; // debounce log
+
+function onEQChange(ch, rawVal){
+  let val = rawVal / 100;
+
+  // QoS Safety: Salty cap at 0.25 (Hypernatremia Guard)
+  if(ch === 'salty' && val > 0.25){
+    val = 0.25;
+    document.getElementById('eq-salty').value = 25;
+    document.getElementById('eqlock-salty').style.display = 'inline';
+  } else if(ch === 'salty'){
+    document.getElementById('eqlock-salty').style.display = val > 0.23 ? 'inline' : 'none';
+  }
+
+  eqOverride[ch] = val;
+
+  // Update number labels (lightweight — no DOM thrash)
+  document.getElementById('eqv-'+ch).textContent = val.toFixed(2);
+  document.getElementById('eqpwm-'+ch).textContent = Math.round(val*100) + '%';
+
+  // Update vector text
+  const vec = EQ_CHANNELS.map(c => eqOverride[c] !== null ? eqOverride[c] : 0);
+  document.getElementById('eqVectorOut').textContent = '[' + vec.map(v=>v.toFixed(2)).join(', ') + ']';
+
+  // Live update taste bars (lightweight)
+  const ds = DATASETS[document.getElementById('datasetSel').value];
+  applyTasteVectorDisplay(getMergedVector(ds));
+
+  // Debounce log — only write to terminal 300ms after user stops dragging
+  clearTimeout(eqLogTimer);
+  eqLogTimer = setTimeout(() => {
+    const pwm = Math.round(val * 100);
+    if(ch === 'salty' && val >= 0.25){
+      log('[QoS L7 DPI] Salty cap enforced → 0.25 (Hypernatremia Guard)', 'log-warn');
+    }
+    log(`[HITL EQ] ${ch.toUpperCase()} → ${val.toFixed(2)} · PWM ${pwm}% · Micro-Electrode adjusted`, 'log-warn');
+  }, 300);
+}
+
+function getMergedVector(ds){
+  // Merge dataset values with EQ overrides
+  const result = {};
+  EQ_CHANNELS.forEach(ch => {
+    result[ch] = eqOverride[ch] !== null ? eqOverride[ch] : ds['ch_'+ch];
+  });
+  return result;
+}
+
+function setEQFromDataset(ds){
+  EQ_CHANNELS.forEach(ch => {
+    const v = ds['ch_'+ch];
+    document.getElementById('eq-'+ch).value = Math.round(v * 100);
+    document.getElementById('eqv-'+ch).textContent = v.toFixed(2);
+    document.getElementById('eqpwm-'+ch).textContent = Math.round(v*100)+'%';
+    eqOverride[ch] = null; // reset to dataset
+  });
+  document.getElementById('eqlock-salty').style.display = 'none';
+  const vec = EQ_CHANNELS.map(c => ds['ch_'+c]);
+  document.getElementById('eqVectorOut').textContent = '[' + vec.map(v=>v.toFixed(2)).join(', ') + ']';
+}
+
+function applyTasteVectorDisplay(vec){
+  const channels = EQ_CHANNELS;
+  const vals = channels.map(c => vec[c]);
+  const maxV = Math.max(...vals);
+  const domIdx = vals.indexOf(maxV);
+
+  channels.forEach((c,i)=>{
+    const v = vals[i];
+    document.getElementById('bar-'+c).style.width = (v*100)+'%';
+    document.getElementById('val-'+c).textContent = v.toFixed(3);
+    document.getElementById('dom-'+c).classList.toggle('show', i===domIdx);
+  });
+
+  const domName = channels[domIdx].toUpperCase();
+  document.getElementById('domOut').textContent = domName + ' = ' + maxV.toFixed(3);
+  const pwm = Math.round(maxV * 100);
+  document.getElementById('pwmOut').textContent = pwm + '% (' + Math.round(pwm*1.5) + ' µA)';
+  document.getElementById('vectorOut').textContent = '[' + vals.map(v=>v.toFixed(2)).join(', ') + ']';
+}
+
+// Update showTasteVector to use merged EQ values
+function showTasteVector(ds){
+  const merged = getMergedVector(ds);
+  applyTasteVectorDisplay(merged);
+  const al = simLatencies.length ? (simLatencies.reduce((a,b)=>a+b,0)/simLatencies.length).toFixed(0)+'ms' : '—';
+  document.getElementById('m-alat').textContent = al;
+
+  // Consume cartridge when taste is delivered
+  const dominant = EQ_CHANNELS.reduce((a,b) => merged[a]>merged[b]?a:b);
+  const dose = merged[dominant] * CART_DOSE * 2; // proportional to dominant intensity
+  consumeCartridge(dose);
+}
+
+// Sync EQ sliders when dataset changes
+document.getElementById('datasetSel').addEventListener('change', function(){
+  const ds = DATASETS[this.value];
+  setEQFromDataset(ds);
+  applyTasteVectorDisplay(getMergedVector(ds));
+});
+
+// ── Init net compare table on load ──
+window.addEventListener('load', ()=>{
+  initCartridgeDrops();
+  updateCartridgeUI();
+  showNetCompare();
+  updateMetrics(NET_PROFILES['1'], DATASETS['4']);
+  setEQFromDataset(DATASETS['4']);
+  applyTasteVectorDisplay(getMergedVector(DATASETS['4']));
+});
+
+// ══════════════════════════════════════════
+//  SIMULATION RESULT REPORT
+// ══════════════════════════════════════════
+function recordTick(tickData){ simTickLog.push(tickData); }
+function recordQoS(event){ simQoSEvents.push(event); }
+
+function generateResult(ds, net, numPkts){
+  // --- pull data ---
+  const lr  = simSent > 0 ? ((1-simRecv/simSent)*100).toFixed(1) : '0.0';
+  const lrNum = parseFloat(lr);
+  const al  = simLatencies.length
+    ? (simLatencies.reduce((a,b)=>a+b)/simLatencies.length)
+    : 0;
+  const alStr = al >= 1000 ? (al/1000).toFixed(4)+'s' : al.toFixed(0)+'ms';
+  const cartUsed = (100 - cartLevel).toFixed(0);
+  const cartUsedUL = ((100 - cartLevel) / 100 * CART_MAX_UL).toFixed(2);
+
+  // --- scenario text ---
+  document.getElementById('res-scenario').textContent =
+    `Scenario: ทดสอบการส่ง Tastant Data ${numPkts} Packets จาก Sensor+ESP32 (SRC) ไปยัง EM Actuator (DST) ผ่าน IoT Cloud · Dataset: ${ds.label} · Network: ${net.name}`;
+
+  // --- overview ---
+  document.getElementById('res-delivered').textContent = simRecv + ' / ' + simSent + ' Packets';
+  document.getElementById('res-avglat').textContent     = alStr;
+  document.getElementById('res-drops').textContent      = simDrop + ' Packets';
+  document.getElementById('res-proto').textContent      = net.protocol;
+  document.getElementById('res-cart').textContent       = cartUsed + '% (' + cartUsedUL + ' µL)';
+
+  // Color drops
+  const dropsEl = document.getElementById('res-drops');
+  dropsEl.style.color = simDrop > 0 ? 'var(--red)' : 'var(--green)';
+
+  // --- final report terminal ---
+  const eq_vec = EQ_CHANNELS.map(c => {
+    const v = eqOverride[c] !== null ? eqOverride[c] : ds['ch_'+c];
+    return v.toFixed(2);
+  }).join(', ');
+  const dom_ch = EQ_CHANNELS.reduce((a,b) => {
+    const va = eqOverride[a]!==null?eqOverride[a]:ds['ch_'+a];
+    const vb = eqOverride[b]!==null?eqOverride[b]:ds['ch_'+b];
+    return va>vb?a:b;
+  });
+  const dom_val = eqOverride[dom_ch]!==null?eqOverride[dom_ch]:ds['ch_'+dom_ch];
+  const pwmDom  = Math.round(dom_val * 100);
+
+  const lines = [
+    {c:'#aaffaa', t:`Total Packets Sent:       ${simSent}`},
+    {c:'#00ff88', t:`Total Packets Delivered:  ${simRecv}`},
+    {c:'#ff6b6b', t:`Total Packets Dropped:    ${simDrop}`},
+    {c:'#aaffaa', t:`Overall Avg Latency:      ${alStr}`},
+    {c:'#ffd600', t:`Packet Loss Rate:         ${lr}%`},
+    {c:'#aaffaa', t:`Protocol:                 ${net.protocol}`},
+    {c:'#ff4fc8', t:`Dominant Taste:           ${dom_ch.replace('ch_','').toUpperCase()} = ${dom_val.toFixed(3)}`},
+    {c:'#00e5ff', t:`PWM Duty (Dominant):      ${pwmDom}%`},
+    {c:'#aa66ff', t:`V_taste[5]:               [${eq_vec}]`},
+    {c:'#aaffaa', t:`Tastant Consumed:         ${cartUsedUL} µL (${cartUsed}%)`},
+    {c:'#aaffaa', t:`Cartridge Remaining:      ${cartLevel}%`},
+  ];
+  const linesEl = document.getElementById('res-final-lines');
+  linesEl.innerHTML = lines.map(l=>`<div style="color:${l.c}">${l.t}</div>`).join('');
+
+  // --- tick table ---
+  const tbody = document.getElementById('res-tick-body');
+  tbody.innerHTML = '';
+  simTickLog.forEach((t, i) => {
+    const tr = document.createElement('tr');
+    tr.className = t.ok ? 'tick-ok' : 'tick-drop';
+    const statusColor = t.ok ? 'var(--green)' : 'var(--red)';
+    const statusText  = t.ok ? '✓ DELIVERED' : '✗ DROPPED';
+    const latText = t.lat !== null
+      ? (t.lat >= 1000 ? (t.lat/1000).toFixed(4)+'s' : t.lat.toFixed(0)+'ms')
+      : '—';
+    tr.innerHTML = `
+      <td style="color:var(--dim)">#${i+1}</td>
+      <td style="color:var(--cyan)">${t.id}</td>
+      <td style="color:var(--gray);font-size:10px">SRC→AP1→IOT→AP2→DST</td>
+      <td style="color:${t.ok?(t.lat>500?'var(--yellow)':'var(--green)'):'var(--gray)'}">${latText}</td>
+      <td style="color:${statusColor};font-weight:bold">${statusText}</td>
+      <td style="color:var(--magenta)">${t.ok ? dom_ch.replace('ch_','').toUpperCase()+'='+dom_val.toFixed(3) : '—'}</td>
+      <td style="color:var(--cyan)">${t.ok ? pwmDom+'%' : '—'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // --- key metrics ---
+  const latClass = al<50?'✅ ดีเยี่ยม':al<200?'✅ ผ่านเกณฑ์':al<1000?'⚠ สูงกว่ามาตรฐาน':'❌ ไม่ผ่าน (>1000ms)';
+  const lossClass = lrNum<1?'✅ ไม่มีการสูญหาย':lrNum<5?'✅ อยู่ในเกณฑ์ (<5%)':lrNum<15?'⚠ สูงกว่ามาตรฐาน':'❌ สูงมาก';
+  const cartClass = cartLevel>30?'✅ เพียงพอ':cartLevel>10?'⚠ ใกล้หมด':'❌ ต่ำกว่าเกณฑ์ (<10%)';
+  const mtuOk = ds.size_kb * 1024 < net.mtu;
+  const mtuClass = mtuOk ? '✅ Payload เข้า MTU' : '❌ Payload เกิน MTU';
+
+  const metrics = [
+    {k:'อัตราความสำเร็จในการส่ง (Delivery Success)', v:`${simRecv}/${simSent} packets (${((simRecv/Math.max(simSent,1))*100).toFixed(1)}%) — ${lrNum<5?'ระบบส่งข้อมูลถึงปลายทางได้ครบ':'บางแพ็กเก็ตหายระหว่างทาง ส่งผลให้รสชาติขาดหาย'}`, c:lrNum<5?'var(--green)':'var(--red)'},
+    {k:'ความหน่วงเวลาเฉลี่ย (Average Latency)', v:`${alStr} — ${latClass} สำหรับ Real-time Taste Sync (เป้าหมาย <20ms)`, c:al<50?'var(--green)':al<1000?'var(--yellow)':'var(--red)'},
+    {k:'ความเสถียรของเครือข่าย (Reliability)', v:`Loss=${lr}% — ${lossClass} · ระบบ UDP No-ARQ ข้ามแพ็กเก็ตหายและทำงานต่อทันที`, c:lrNum<5?'var(--green)':'var(--red)'},
+    {k:'MTU Payload Compliance', v:`Payload ${(ds.size_kb*1024).toFixed(0)}B vs MTU ${net.mtu}B → ${mtuClass}`, c:mtuOk?'var(--green)':'var(--red)'},
+    {k:'Tastant Cartridge Level', v:`เหลือ ${cartLevel}% (${(cartLevel/100*CART_MAX_UL).toFixed(2)} µL) — ${cartClass}`, c:cartLevel>30?'var(--green)':cartLevel>10?'var(--yellow)':'var(--red)'},
+    {k:'QoS L7 DPI (Salty Guard)', v:`V[Salty] ≤ 0.25 enforced — ป้องกัน Hypernatremia`, c:'var(--cyan)'},
+  ];
+  document.getElementById('res-metrics-list').innerHTML = metrics.map(m=>`
+    <div class="res-metric-item">
+      <div class="res-metric-key" style="color:${m.c}">${m.k}</div>
+      <div class="res-metric-val">${m.v}</div>
+    </div>`).join('');
+
+  // --- system analysis (scenario-driven) ---
+  const analyses = buildAnalysis(ds, net, al, lrNum, dom_ch, dom_val, pwmDom);
+  document.getElementById('res-analysis').innerHTML = analyses.map(a=>`
+    <div class="res-analysis-row">
+      <div class="res-analysis-icon">${a.icon}</div>
+      <div class="res-analysis-body"><strong style="color:${a.color}">${a.title}</strong><br>${a.body}</div>
+    </div>`).join('');
+
+  // --- QoS events ---
+  if(simQoSEvents.length > 0){
+    document.getElementById('res-qos-card').style.display = 'block';
+    document.getElementById('res-qos-list').innerHTML = simQoSEvents.map(e=>`
+      <div class="res-analysis-row">
+        <div class="res-analysis-icon">${e.icon}</div>
+        <div class="res-analysis-body" style="color:var(--red)">${e.msg}</div>
+      </div>`).join('');
+  } else {
+    document.getElementById('res-qos-card').style.display = 'none';
+  }
+
+  // --- verdict ---
+  const vBox = document.getElementById('res-verdict');
+  const vIcon = document.getElementById('res-verdict-icon');
+  const vLabel = document.getElementById('res-verdict-label');
+  const vText  = document.getElementById('res-verdict-text');
+  vBox.className = 'res-verdict';
+
+  if(lrNum === 0 && al < 200){
+    // PASS — no extra class needed, 'res-verdict' base class is green already
+    vIcon.textContent = '✓';
+    vLabel.textContent = 'PASS — ระบบทำงานได้ดีเยี่ยม';
+    vText.textContent = `ส่งรสชาติ ${ds.label} สำเร็จครบ ${simRecv}/${simSent} แพ็กเก็ต · Avg Latency ${alStr} อยู่ในเกณฑ์ · EM Pump ฉีด Tastant solution ครบทุก dose · ระบบ HITL ทำงานปกติ`;
+  } else if(lrNum <= 10 && al < 1000){
+    vBox.classList.add('warn');
+    vIcon.textContent = '⚠';
+    vLabel.textContent = 'PARTIAL — ระบบทำงานได้บางส่วน';
+    vText.textContent = `Loss ${lr}% · บางช่องรสชาติขาดหาย · Latency ${alStr} · แนะนำเปลี่ยนเป็น ${al<200?'ESPNOW Local':'WiFi 802.11n'} เพื่อ Latency ที่ดีขึ้น`;
+  } else {
+    vBox.classList.add('fail');
+    vIcon.textContent = '✗';
+    vLabel.textContent = 'FAIL — เครือข่ายไม่เหมาะสมสำหรับ Real-time Taste';
+    vText.textContent = `Loss ${lr}% · Avg Latency ${alStr} เกินเกณฑ์ 20ms อย่างรุนแรง · ผู้ใช้จะรับรสชาติล่าช้าและขาดหาย · ควรใช้ ESPNOW (Local) แทน`;
+  }
+
+  // show result tab
+  document.getElementById('resultEmpty').style.display = 'none';
+  document.getElementById('resultContent').style.display = 'block';
+  // flash result tab button
+  const rBtn = document.getElementById('resultTabBtn');
+  rBtn.style.background = 'rgba(255,214,0,.2)';
+  rBtn.style.borderColor = 'var(--yellow)';
+  setTimeout(()=>{ rBtn.style.background=''; }, 2000);
+}
+
+function buildAnalysis(ds, net, al, lrNum, dom_ch, dom_val, pwmDom){
+  const domName = dom_ch.replace('ch_','').toUpperCase();
+  const results = [];
+
+  // 1. Network suitability
+  if(net.lat <= 10){
+    results.push({icon:'⚡',color:'var(--green)',
+      title:'ESPNOW Local — Ultra-Low Latency Mode',
+      body:`โปรโตคอล ESPNOW ส่งข้อมูล float32[5] โดยตรงระหว่าง ESP32 โดยไม่ผ่าน IoT Cloud ทำให้ได้ Latency ต่ำสุดที่ ~${al.toFixed(0)}ms ซึ่งต่ำกว่าเกณฑ์ End-to-End 20ms เหมาะสมอย่างยิ่งสำหรับ Real-time Taste Delivery`});
+  } else if(net.lat <= 50){
+    results.push({icon:'✅',color:'var(--cyan)',
+      title:'WiFi 802.11n — ผ่านเกณฑ์ Local Network',
+      body:`UDP/IP ผ่าน WiFi 802.11n ให้ Latency ~${al.toFixed(0)}ms อยู่ในระดับที่ยอมรับได้ แต่สูงกว่า ESPNOW เล็กน้อย ยังสามารถใช้งาน Taste Sync ได้ในสภาพแวดล้อม LAN`});
+  } else if(net.lat <= 500){
+    results.push({icon:'⚠',color:'var(--yellow)',
+      title:'IoT Cloud (Good) — ความหน่วงปานกลาง',
+      body:`Blynk/HTTPS มี Latency ~${al.toFixed(0)}ms ซึ่งสูงกว่าเกณฑ์ 20ms อย่างชัดเจน ผู้ใช้จะ "เห็น" อาหารในแว่น AR ก่อนที่จะ "รับรส" ประมาณ ${(al/1000).toFixed(2)} วินาที ทำให้ Sensory Synchronization ผิดพลาด`});
+  } else {
+    results.push({icon:'❌',color:'var(--red)',
+      title:`IoT Cloud (Poor) — ไม่เหมาะสมสำหรับ Real-time Taste`,
+      body:`Latency สูงถึง ~${al.toFixed(0)}ms (${(al/1000).toFixed(2)}s) เกินเกณฑ์ 20ms อย่างรุนแรง ผู้ใช้จะรับรสช้าไปมากกว่า ${(al/1000).toFixed(1)} วินาทีหลังเห็นภาพ VR ส่งผลให้ประสบการณ์ Multisensory ถูกทำลายอย่างสิ้นเชิง ควรเปลี่ยนเป็น ESPNOW ทันที`});
+  }
+
+  // 2. Dominant taste + EM pump analysis
+  const pwmAnalysis = pwmDom >= 70 ? 'สูงมาก — EM Pump ทำงานหนัก ควรเฝ้าระวัง Cartridge' :
+                      pwmDom >= 40 ? 'ปานกลาง — EM Pump ทำงานในระดับปกติ' :
+                      'ต่ำ — EM Pump ใช้พลังงานน้อย Cartridge ยาวนาน';
+  results.push({icon:'💧',color:'var(--magenta)',
+    title:`Dominant Taste: ${domName} = ${dom_val.toFixed(3)} → PWM ${pwmDom}%`,
+    body:`EM Minipump ได้รับคำสั่ง PWM Duty Cycle ${pwmDom}% เพื่อฉีด Tastant Solution (${domName.toLowerCase()} agent) ลงสู่ลิ้น · ${pwmAnalysis} · สูตรคำนวณ: PWM_duty = (V_taste[${domName}] × 100) ± Jitter_network`});
+
+  // 3. Taste vector & dataset analysis
+  const tasteProfile = ds.ch_umami > 0.7 ? 'Umami-rich (savory complex)' :
+                       ds.ch_sweet > 0.7 ? 'Sweet-dominant (dessert profile)' :
+                       ds.ch_sour  > 0.6 ? 'Sour-forward (acidic profile)' :
+                       ds.ch_salty > 0.45 ? 'Salty-balanced (savory)' : 'Mixed profile';
+  results.push({icon:'🧪',color:'var(--cyan)',
+    title:`Dataset Analysis: ${ds.label} (${tasteProfile})`,
+    body:`Sensor Patch ADC ${ds.adc_bits}-bit @ ${ds.sample_rate} อ่านค่าสารเคมี Glucose/NaCl/H+ion/Quinine/Glutamate และเข้ารหัสเป็น V_taste = [Sweet:${ds.ch_sweet}, Salty:${ds.ch_salty}, Sour:${ds.ch_sour}, Bitter:${ds.ch_bitter}, Umami:${ds.ch_umami}] · Payload ${(ds.size_kb*1024).toFixed(0)}B หลัง gzip → ${(ds.size_kb*0.6*1024).toFixed(0)}B`});
+
+  // 4. Packet loss consequence
+  if(lrNum > 0){
+    const lostChs = EQ_CHANNELS.filter(c => Math.random() < lrNum/100);
+    const lostStr = lostChs.length > 0 ? lostChs.map(c=>c.toUpperCase()).join(', ') : 'บางช่อง';
+    results.push({icon:'⚡',color:'var(--red)',
+      title:`Packet Loss Impact: Loss Rate ${lrNum.toFixed(1)}%`,
+      body:`แพ็กเก็ตที่หายไปทำให้ EM Pump ไม่ได้รับคำสั่ง PWM ในบาง tick — ผู้ใช้อาจสูญเสียการรับรสชาติในช่อง ${lostStr} อย่างฉับพลัน ระบบใช้ UDP (No-ARQ) ไม่ส่งซ้ำ เพื่อหลีกเลี่ยง Latency spike ที่จะยิ่งทำลาย Sensory Sync`});
+  } else {
+    results.push({icon:'✅',color:'var(--green)',
+      title:'Zero Packet Loss — ระบบส่งครบทุก Tick',
+      body:`Loss = 0% ทุกแพ็กเก็ตถึงปลายทางสำเร็จ EM Pump ได้รับสัญญาณ PWM ครบทุก cycle ไม่มีการสะดุดหรือขาดหายของรสชาติระหว่างการทดสอบ แสดงให้เห็นว่า Queue Management และ Bandwidth Management ทำได้ดีเยี่ยม`});
+  }
+
+  // 5. HITL & Safety
+  results.push({icon:'🛡️',color:'var(--purple)',
+    title:'HITL & Safety Systems — ทำงานปกติ',
+    body:`QoS L7 DPI: V[Salty] ถูก cap ที่ 0.25 (Hypernatremia Guard) · Hardware Safety Lock: EM Pump จำกัดการฉีดสูงสุดต่อ cycle · IoT Session Timeout: 5s watchdog พร้อม · RED Emergency Stop: ตัดไฟใน <10ms · Sensory EQ HITL: ผู้ใช้ปรับความเข้มข้นได้ real-time`});
+
+  return results;
+}
+
+// generateResult is called directly from simulation end
+</script>
+</body>
+</html>
